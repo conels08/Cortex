@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--
+      CORTEX: Case of the Ghost Algorithm
+      -----------------------------------
+      Portfolio project by Colby (interactive narrative detective game).
+
+      This HTML file defines the structural layout and semantic regions of the app.
+      All visual styling is handled in css/styles.css.
+      All behavior and game logic is handled in the JS files under /js.
+    -->
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CORTEX: Case of the Ghost Algorithm</title>
+
+  <!-- Primary stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <!--
+      App Header
+      ----------
+      Contains the game title and quick-access actions (like About/Help).
+      The header stays static while the main game content changes beneath it.
+    -->
+  <header class="app-header">
+    <div class="app-header__branding">
+      <div class="app-header__logo" aria-hidden="true">
+        <!-- Visual logo space (e.g., CORTEX icon). Purely decorative. -->
+      </div>
+      <div class="app-header__titles">
+        <h1 class="app-header__title">CORTEX</h1>
+        <p class="app-header__subtitle">Case of the Ghost Algorithm</p>
+      </div>
+    </div>
+
+    <div class="app-header__actions">
+      <button type="button" id="about-button" class="app-header__button" aria-haspopup="dialog">
+        About
+      </button>
+      <button type="button" id="help-button" class="app-header__button" aria-haspopup="dialog">
+        Help
+      </button>
+    </div>
+  </header>
+
+  <!--
+      Main Game Region
+      ----------------
+      This <main> element hosts mutually exclusive "screens":
+        - Intro screen (start game)
+        - Core game screen (investigation)
+        - Optional additional screens (e.g., loading, error states, etc.)
+
+      Only one primary screen should be visible at a time; visibility is controlled via JS + CSS.
+    -->
+  <main id="app-main" class="app-main" role="main">
+    <!--
+        Intro Screen
+        ------------
+        Simple landing view that introduces the case and lets the player start.
+        This is the first screen a new player sees.
+      -->
+    <section id="intro-screen" class="screen screen--active" aria-label="Case introduction">
+      <div class="intro-screen__content">
+        <h2 class="intro-screen__heading">Case Briefing</h2>
+        <p class="intro-screen__text">
+          Neon Quill’s lead developer was found dead in their locked office
+          hours after deploying a secret predictive model rumored to beat
+          casinos and markets alike. The official story calls it an accident.
+        </p>
+        <p class="intro-screen__text">
+          You are the human investigator assigned to the case. Your partner is
+          CORTEX, an experimental AI linked to the same codebase as the
+          missing model. Together, you’ll interrogate suspects, parse logs,
+          and decide who is lying.
+        </p>
+        <p class="intro-screen__text intro-screen__text--emphasis">
+          The case will adapt based on the clues you collect and the
+          connections you make. Your final accusation will determine the
+          outcome.
+        </p>
+
+        <button type="button" id="start-game-button" class="intro-screen__start-button">
+          Begin Investigation
+        </button>
+      </div>
+    </section>
+
+    <!--
+        Game Screen
+        -----------
+        This section contains the core interactive layout:
+          - Scene Panel (left)
+          - Dialogue + Choices (center)
+          - CORTEX HUD (right)
+
+        It is initially hidden and becomes active after the player starts the game.
+      -->
+    <section id="game-screen" class="screen screen--hidden" aria-label="Investigation interface" hidden>
+      <div class="game-layout">
+        <!--
+            Scene Panel
+            -----------
+            Displays the current location or character visuals plus a short description.
+            This is primarily atmospheric and contextual.
+          -->
+        <section id="scene-panel" class="panel panel--scene" aria-label="Current scene">
+          <header class="panel__header">
+            <h2 id="scene-title" class="panel__title">
+              <!-- Populated by JS with current location/suspect name -->
+            </h2>
+            <p id="scene-subtitle" class="panel__subtitle">
+              <!-- Populated by JS with short location/situation summary -->
+            </p>
+          </header>
+
+          <div class="panel__body">
+            <div id="scene-visual" class="scene-visual" aria-hidden="true">
+              <!--
+                  Placeholder for background imagery or stylized illustration
+                  (can be a gradient, silhouette, etc.). JS may swap classes
+                  or background images here based on game state.
+                -->
+            </div>
+
+            <p id="scene-description" class="scene-description">
+              <!-- Populated by JS with descriptive text about the current scene -->
+            </p>
+          </div>
+
+          <!--
+              Quick Navigation / Locations
+              ----------------------------
+              Optional: small controls for switching locations during the investigation phase.
+            -->
+          <footer class="panel__footer panel__footer--scene">
+            <div id="location-buttons" class="location-buttons" role="group" aria-label="Available locations">
+              <!-- Location buttons (Neon Quill Lab, Server Vault, Rooftop Lounge, etc.) injected via JS -->
+            </div>
+          </footer>
+        </section>
+
+        <!--
+            Dialogue Panel
+            --------------
+            Central narrative engine:
+              - Shows who is speaking.
+              - Displays the current line of dialogue.
+              - Presents response/interaction options for the player.
+          -->
+        <section id="dialogue-panel" class="panel panel--dialogue" aria-label="Dialogue and choices">
+          <header class="panel__header panel__header--dialogue">
+            <p id="dialogue-phase-label" class="dialogue-phase-label">
+              <!-- e.g., "Intro", "Investigation", "Deduction", updated via JS -->
+            </p>
+          </header>
+
+          <div class="panel__body panel__body--dialogue">
+            <div class="dialogue-box">
+              <div class="dialogue-box__speaker">
+                <span id="speaker-name" class="dialogue-box__speaker-name">
+                  <!-- Populated by JS (e.g., "Detective", "CORTEX", "Rhea Park") -->
+                </span>
+              </div>
+
+              <div id="dialogue-text" class="dialogue-box__text" aria-live="polite">
+                <!-- Populated by JS with the active line of dialogue -->
+              </div>
+            </div>
+
+            <div id="choices-panel" class="choices-panel" role="group" aria-label="Available responses and actions">
+              <!-- Choice buttons injected here by JS (e.g., "Ask about alibi", "Inspect logs", etc.) -->
+            </div>
+          </div>
+        </section>
+
+        <!--
+            CORTEX HUD Panel
+            ----------------
+            Right-side panel for AI partner commentary, hints, and meta-feedback
+            about the player's progress and deductions.
+          -->
+        <aside id="cortex-panel" class="panel panel--cortex" aria-label="CORTEX AI partner">
+          <header class="panel__header panel__header--cortex">
+            <div class="cortex-header">
+              <h2 class="panel__title">CORTEX</h2>
+              <span class="cortex-header__status" id="cortex-status">
+                <!-- e.g., "Online", "Analyzing", etc., updated via JS -->
+              </span>
+            </div>
+          </header>
+
+          <div class="panel__body panel__body--cortex">
+            <div id="cortex-feed" class="cortex-feed" aria-live="polite" aria-label="CORTEX insights">
+              <!--
+                  Short, AI-like insights or reactions to player actions.
+                  Example: "Inconsistency detected in Milo's timeline."
+                  New entries appended at the bottom via JS.
+                -->
+            </div>
+          </div>
+
+          <footer class="panel__footer panel__footer--cortex">
+            <button type="button" id="toggle-hints-button" class="cortex-control-button">
+              Toggle Hints
+            </button>
+          </footer>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!--
+      HUD Footer
+      ----------
+      Global bottom bar for:
+        - Clue overview
+        - Access to notebook (deduction mode)
+        - Restart / main controls
+      This remains visible during active gameplay.
+    -->
+  <footer id="hud-footer" class="hud-footer" aria-label="Case controls and collected clues">
+    <div id="clue-bar" class="clue-bar" role="group" aria-label="Collected clues">
+      <!-- Clue badges/cards are injected here as they are discovered -->
+    </div>
+
+    <div class="hud-footer__controls">
+      <button type="button" id="notebook-button" class="hud-footer__button" aria-haspopup="dialog">
+        Notebook / Deduction
+      </button>
+
+      <button type="button" id="restart-button" class="hud-footer__button hud-footer__button--secondary">
+        Restart Case
+      </button>
+    </div>
+  </footer>
+
+  <!--
+      Notebook Modal (Deduction Mode)
+      --------------------------------
+      Full-screen or centered modal that shows:
+        - List/grid of clues
+        - Key suspects and motives
+        - UI for making the final accusation
+
+      Opened via the "Notebook / Deduction" button.
+    -->
+  <div id="notebook-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-title"
+    hidden>
+    <div class="modal__backdrop" aria-hidden="true"></div>
+
+    <div class="modal__dialog modal__dialog--notebook">
+      <header class="modal__header">
+        <h2 id="notebook-title" class="modal__title">
+          Case Notebook
+        </h2>
+        <button type="button" id="close-notebook-button" class="modal__close-button" aria-label="Close notebook">
+          ×
+        </button>
+      </header>
+
+      <div class="modal__body modal__body--notebook">
+        <section id="notebook-clues" class="notebook-section notebook-section--clues" aria-label="Clues">
+          <h3 class="notebook-section__title">Clues</h3>
+          <div id="notebook-clues-list" class="notebook-list">
+            <!-- Detailed clue cards injected here by JS -->
+          </div>
+        </section>
+
+        <section id="notebook-suspects" class="notebook-section notebook-section--suspects" aria-label="Suspects">
+          <h3 class="notebook-section__title">Suspects</h3>
+          <div id="notebook-suspects-list" class="notebook-list">
+            <!-- Suspect summaries + select options injected here by JS -->
+          </div>
+        </section>
+
+        <section id="notebook-accusation" class="notebook-section notebook-section--accusation"
+          aria-label="Final accusation">
+          <h3 class="notebook-section__title">Make Your Accusation</h3>
+
+          <form id="accusation-form" class="accusation-form">
+            <!--
+                Suspect, motive, and key evidence options are populated via JS.
+                Form submission will trigger the ending/evaluation flow.
+              -->
+            <div class="accusation-form__field">
+              <label for="accused-suspect-select">Suspect</label>
+              <select id="accused-suspect-select" name="suspect" required>
+                <!-- Options injected by JS -->
+              </select>
+            </div>
+
+            <div class="accusation-form__field">
+              <label for="accused-motive-select">Motive</label>
+              <select id="accused-motive-select" name="motive" required>
+                <!-- Options injected by JS -->
+              </select>
+            </div>
+
+            <div class="accusation-form__field">
+              <label for="accused-evidence-select">
+                Key Evidence
+              </label>
+              <select id="accused-evidence-select" name="evidence" required>
+                <!-- Options injected by JS (e.g., specific clues) -->
+              </select>
+            </div>
+
+            <div class="accusation-form__actions">
+              <button type="submit" id="submit-accusation-button" class="accusation-form__submit">
+                Confirm Accusation
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!--
+      About Modal
+      -----------
+      Short explanation of the project, controls, and credits.
+      Good for portfolio viewers and recruiters to quickly understand the intent.
+    -->
+  <div id="about-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="about-title"
+    hidden>
+    <div class="modal__backdrop" aria-hidden="true"></div>
+
+    <div class="modal__dialog modal__dialog--about">
+      <header class="modal__header">
+        <h2 id="about-title" class="modal__title">
+          About This Game
+        </h2>
+        <button type="button" id="close-about-button" class="modal__close-button" aria-label="Close about dialog">
+          ×
+        </button>
+      </header>
+
+      <div class="modal__body">
+        <p>
+          <strong>CORTEX: Case of the Ghost Algorithm</strong> is a short,
+          replayable detective story built as a front-end portfolio project.
+          It combines branching narrative, a lightweight rules engine, and
+          data-driven content to simulate an AI partner assisting with your
+          investigation.
+        </p>
+        <p>
+          Under the hood, suspects, clues, and dialogue are defined as
+          structured data, while a central state manager tracks your progress
+          and updates the interface. This architecture makes it easy to extend
+          the case or add new episodes.
+        </p>
+        <p>
+          Created by Colby as a demonstration of interactive UI design, game
+          state management, and narrative-driven user experience.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!--
+      Help Modal
+      ----------
+      Concise instructions for non-technical players.
+    -->
+  <div id="help-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+    <div class="modal__backdrop" aria-hidden="true"></div>
+
+    <div class="modal__dialog modal__dialog--help">
+      <header class="modal__header">
+        <h2 id="help-title" class="modal__title">
+          How to Play
+        </h2>
+        <button type="button" id="close-help-button" class="modal__close-button" aria-label="Close help dialog">
+          ×
+        </button>
+      </header>
+
+      <div class="modal__body">
+        <ul class="help-list">
+          <li>
+            Use the dialogue options to question suspects and inspect the
+            environment.
+          </li>
+          <li>
+            Watch the CORTEX panel for AI-generated insights and subtle hints
+            about inconsistencies.
+          </li>
+          <li>
+            As you uncover information, clues will appear in the bottom bar.
+            Open the Notebook to review everything in one place.
+          </li>
+          <li>
+            When you feel confident, use the Notebook to choose a suspect,
+            motive, and key evidence, then confirm your accusation.
+          </li>
+          <li>
+            Your final score reflects how accurate and thorough your
+            investigation was. You can restart the case at any time.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!--
+      Script Loading
+      --------------
+      Scripts are loaded at the end of the body to ensure the DOM is available
+      before any JS runs. Order is important: data and state definitions should
+      load before UI rendering and initialization.
+    -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
