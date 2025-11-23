@@ -1,0 +1,990 @@
+/*
+  CORTEX: Case of the Ghost Algorithm
+  -----------------------------------
+  Core stylesheet for the interactive detective game.
+
+  Design goals:
+    - Clean, modern UI with a subtle neon sci-fi vibe.
+    - Clear visual separation between panels (scene, dialogue, CORTEX).
+    - Readable typography, good contrast, and accessible sizes.
+    - Responsive layout that degrades gracefully on smaller screens.
+*/
+
+/* =========================
+   Root + Global Resets
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/*
+  CSS Custom Properties
+  ---------------------
+  Using variables for colors, spacing, and radii makes it easy to adjust
+  the visual theme later without rewriting multiple rules.
+*/
+
+:root {
+  /* Color palette */
+  --color-bg: #050711;
+  --color-bg-elevated: #101322;
+  --color-bg-panel: #141726;
+  --color-bg-panel-soft: #191c2d;
+
+  --color-accent: #6b7bff;
+  /* Primary accent (cool neon blue) */
+  --color-accent-soft: rgba(107, 123, 255, 0.2);
+  --color-accent-strong: #9f7bff;
+  /* Secondary accent (violet) */
+
+  --color-border: #2a3047;
+  --color-border-subtle: #1c2133;
+
+  --color-text-main: #f5f6ff;
+  --color-text-muted: #a1a7c7;
+  --color-text-soft: #7b81a3;
+  --color-text-accent: #c0c7ff;
+  --color-danger: #ff5c7c;
+  --color-success: #44d18f;
+
+  /* Shadows and glows */
+  --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.7);
+  --glow-accent: 0 0 20px rgba(107, 123, 255, 0.4);
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  /* Spacing scale */
+  --space-2: 0.125rem;
+  --space-4: 0.25rem;
+  --space-8: 0.5rem;
+  --space-12: 0.75rem;
+  --space-16: 1rem;
+  --space-20: 1.25rem;
+  --space-24: 1.5rem;
+  --space-32: 2rem;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-med: 220ms ease-out;
+}
+
+/* =========================
+   Base Elements
+   ========================= */
+
+body {
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at top, #181a31 0%, #050711 55%, #020308 100%);
+  color: var(--color-text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Utility class used for screens managed via JS */
+.screen {
+  display: none;
+}
+
+.screen--active {
+  display: block;
+}
+
+.screen--hidden {
+  display: none;
+}
+
+/* Ensures elements with [hidden] attribute are not visible */
+[hidden] {
+  display: none !important;
+}
+
+/* =========================
+   App Header
+   ========================= */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--space-24);
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(to right,
+      rgba(10, 12, 27, 0.96),
+      rgba(9, 11, 22, 0.98));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-header__branding {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.app-header__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, #ffffff 0%, #6b7bff 15%, #141726 80%);
+  box-shadow: var(--glow-accent);
+}
+
+.app-header__titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header__title {
+  font-size: 1.3rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.app-header__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.app-header__button {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: rgba(14, 18, 35, 0.9);
+  color: var(--color-text-accent);
+  padding: var(--space-8) var(--space-16);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--transition-med), border-color var(--transition-med),
+    transform var(--transition-fast);
+}
+
+.app-header__button:hover {
+  background: rgba(24, 30, 63, 0.95);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.app-header__button:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   Main App Area
+   ========================= */
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-16) var(--space-24) var(--space-24);
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* =========================
+   Intro Screen
+   ========================= */
+
+.intro-screen__content {
+  max-width: 700px;
+  margin: 6vh auto 0;
+  padding: var(--space-24);
+  background: linear-gradient(145deg,
+      rgba(16, 19, 38, 0.98),
+      rgba(21, 26, 54, 0.98));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+.intro-screen__heading {
+  font-size: 1.7rem;
+  margin: 0 0 var(--space-16);
+}
+
+.intro-screen__text {
+  margin: 0 0 var(--space-12);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.intro-screen__text--emphasis {
+  color: var(--color-text-accent);
+}
+
+.intro-screen__start-button {
+  margin-top: var(--space-24);
+  padding: var(--space-12) var(--space-24);
+  border-radius: var(--radius-pill);
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--glow-accent);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.intro-screen__start-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(159, 123, 255, 0.8);
+}
+
+.intro-screen__start-button:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* =========================
+   Game Layout
+   ========================= */
+
+/*
+  The main game screen uses a three-column layout:
+    - Left: Scene panel (location / context)
+    - Center: Dialogue panel
+    - Right: CORTEX AI panel (meta insights)
+
+  On smaller screens, this collapses into stacked panels.
+*/
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.4fr) minmax(0, 1.05fr);
+  gap: var(--space-16);
+  margin-top: var(--space-16);
+}
+
+/*
+  Panel Base Styling
+  ------------------
+  Panels share a consistent visual style, with minor variations
+  per panel type (scene, dialogue, cortex).
+*/
+
+.panel {
+  background: radial-gradient(circle at top left, #252842 0%, #141726 35%, #0c0f1d 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+.panel__header {
+  padding: var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(to bottom,
+      rgba(18, 22, 43, 0.96),
+      rgba(15, 18, 34, 0.98));
+}
+
+.panel__title {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel__subtitle {
+  margin: var(--space-4) 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+}
+
+.panel__body {
+  padding: var(--space-16);
+  flex: 1;
+  min-height: 0;
+  /* Enables flex children with overflow to behave correctly */
+}
+
+.panel__footer {
+  padding: var(--space-12) var(--space-16);
+  border-top: 1px solid var(--color-border-subtle);
+  background: rgba(10, 12, 24, 0.96);
+}
+
+/* =========================
+   Scene Panel
+   ========================= */
+
+.panel--scene .panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.scene-visual {
+  height: 140px;
+  border-radius: var(--radius-md);
+  background: radial-gradient(circle at 20% 20%, #ffffff 0%, #6b7bff 12%, #141726 52%, #050711 100%);
+  border: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--space-12);
+}
+
+.scene-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.location-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.location-buttons button {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: rgba(20, 23, 40, 0.96);
+  color: var(--color-text-accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.location-buttons button:hover {
+  background: rgba(30, 35, 68, 0.98);
+  border-color: var(--color-accent);
+  box-shadow: var(--glow-accent);
+  transform: translateY(-1px);
+}
+
+.location-buttons button:active {
+  transform: translateY(0);
+}
+
+.location-buttons button.location-button--active {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  border-color: transparent;
+  color: #fff;
+}
+
+/* =========================
+   Dialogue Panel
+   ========================= */
+
+.panel--dialogue {
+  background: radial-gradient(circle at top, #222645 0%, #141726 40%, #0b0e1a 100%);
+}
+
+.panel__header--dialogue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialogue-phase-label {
+  font-size: 0.8rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-soft);
+}
+
+.panel__body--dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.dialogue-box {
+  padding: var(--space-16);
+  border-radius: var(--radius-md);
+  background: rgba(6, 9, 23, 0.97);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.dialogue-box__speaker {
+  margin-bottom: var(--space-8);
+}
+
+.dialogue-box__speaker-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+  background: rgba(107, 123, 255, 0.12);
+  border: 1px solid rgba(107, 123, 255, 0.4);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.dialogue-box__text {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--color-text-main);
+  min-height: 3.5em;
+}
+
+/* Choices (buttons injected via JS) */
+
+.choices-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/*
+  Generic choice button class to be used by JS when creating options.
+*/
+.choice-button {
+  text-align: left;
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: linear-gradient(to right, rgba(15, 18, 35, 0.96), rgba(10, 12, 24, 0.96));
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--transition-med), border-color var(--transition-med),
+    transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.choice-button:hover {
+  background: linear-gradient(to right, rgba(24, 29, 61, 0.98), rgba(17, 19, 36, 0.98));
+  border-color: var(--color-accent);
+  box-shadow: var(--glow-accent);
+  transform: translateY(-1px);
+}
+
+.choice-button:active {
+  transform: translateY(0);
+}
+
+.choice-button.choice-button--secondary {
+  border-style: dashed;
+  color: var(--color-text-soft);
+}
+
+.choice-button.choice-button--danger {
+  border-color: rgba(255, 92, 124, 0.6);
+  background: linear-gradient(to right,
+      rgba(70, 19, 40, 0.96),
+      rgba(18, 9, 20, 0.96));
+}
+
+/* =========================
+   CORTEX Panel
+   ========================= */
+
+.panel--cortex {
+  background: radial-gradient(circle at top right, #31355b 0%, #141726 40%, #060814 100%);
+}
+
+.cortex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.cortex-header__status {
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(68, 209, 143, 0.3);
+  font-size: 0.75rem;
+  color: var(--color-success);
+  background: rgba(6, 46, 32, 0.8);
+}
+
+/* Potential modifier classes for status (to be toggled via JS) */
+
+.cortex-header__status--warning {
+  border-color: rgba(255, 191, 71, 0.4);
+  color: #ffbf47;
+  background: rgba(71, 48, 12, 0.85);
+}
+
+.cortex-header__status--error {
+  border-color: rgba(255, 92, 124, 0.6);
+  color: var(--color-danger);
+  background: rgba(69, 16, 28, 0.85);
+}
+
+.panel__body--cortex {
+  padding: var(--space-16) var(--space-12) var(--space-16) var(--space-16);
+}
+
+.cortex-feed {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-size: 0.85rem;
+}
+
+/*
+  Individual CORTEX feed entry (will be created by JS).
+*/
+.cortex-feed__entry {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  background: rgba(8, 11, 26, 0.96);
+  border: 1px solid rgba(107, 123, 255, 0.35);
+  color: var(--color-text-accent);
+}
+
+/* Slight variation for "alert" type entries */
+.cortex-feed__entry--alert {
+  border-color: rgba(255, 191, 71, 0.6);
+  color: #ffdf8a;
+}
+
+.cortex-feed__entry--critical {
+  border-color: rgba(255, 92, 124, 0.8);
+  color: var(--color-danger);
+}
+
+.panel__footer--cortex {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cortex-control-button {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: rgba(17, 20, 38, 0.96);
+  color: var(--color-text-soft);
+  padding: var(--space-8) var(--space-16);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.cortex-control-button:hover {
+  background: rgba(24, 28, 54, 0.98);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.cortex-control-button:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   HUD Footer (Clues + Controls)
+   ========================= */
+
+.hud-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-24);
+  border-top: 1px solid var(--color-border);
+  background: linear-gradient(to top,
+      rgba(4, 5, 12, 0.98),
+      rgba(8, 10, 20, 0.98));
+}
+
+.clue-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/*
+  Clue badge styling (clue elements will be injected by JS
+  with this class).
+*/
+.clue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(17, 19, 38, 0.96);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.clue-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.clue-badge:hover {
+  border-color: var(--color-accent);
+  background: rgba(26, 31, 63, 0.98);
+  color: var(--color-text-accent);
+  transform: translateY(-1px);
+}
+
+.clue-badge--critical::before {
+  background: var(--color-danger);
+}
+
+.hud-footer__controls {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.hud-footer__button {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: rgba(17, 20, 38, 0.96);
+  color: var(--color-text-accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.hud-footer__button:hover {
+  background: rgba(25, 30, 60, 0.98);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.hud-footer__button--secondary {
+  color: var(--color-text-soft);
+}
+
+/* =========================
+   Modal Base Styles
+   ========================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal--hidden {
+  display: none;
+}
+
+.modal.modal--visible {
+  display: flex;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(1, 2, 6, 0.86);
+  backdrop-filter: blur(4px);
+}
+
+.modal__dialog {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 var(--space-16);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: radial-gradient(circle at top, #262b4a 0%, #111321 40%, #070814 100%);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.modal__dialog--notebook {
+  max-width: 960px;
+}
+
+.modal__header {
+  padding: var(--space-12) var(--space-16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(to right,
+      rgba(22, 25, 50, 0.98),
+      rgba(27, 27, 60, 0.98));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal__close-button {
+  border: none;
+  background: transparent;
+  color: var(--color-text-soft);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: var(--space-4) var(--space-8);
+  line-height: 1;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.modal__close-button:hover {
+  color: var(--color-text-accent);
+  transform: translateY(-1px);
+}
+
+.modal__body {
+  padding: var(--space-16);
+  overflow-y: auto;
+}
+
+/* =========================
+   Notebook Layout
+   ========================= */
+
+.modal__body--notebook {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+.notebook-section {
+  background: rgba(7, 9, 22, 0.96);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  padding: var(--space-12) var(--space-12) var(--space-16);
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-section--accusation {
+  grid-column: 1 / -1;
+}
+
+.notebook-section__title {
+  margin: 0 0 var(--space-8);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-soft);
+}
+
+.notebook-list {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Clue and suspect cards inserted here later */
+.notebook-card {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(11, 13, 30, 0.96);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* =========================
+   Accusation Form
+   ========================= */
+
+.accusation-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+  align-items: flex-end;
+}
+
+.accusation-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.accusation-form__field label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-soft);
+}
+
+.accusation-form__field select {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: rgba(8, 10, 24, 0.98);
+  color: var(--color-text-main);
+  padding: var(--space-8) var(--space-12);
+  font-size: 0.85rem;
+}
+
+.accusation-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+.accusation-form__submit {
+  padding: var(--space-10) var(--space-20);
+  border-radius: var(--radius-pill);
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #fff;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--glow-accent);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.accusation-form__submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(159, 123, 255, 0.9);
+}
+
+.accusation-form__submit:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* =========================
+   About & Help Content
+   ========================= */
+
+.help-list {
+  list-style: disc;
+  padding-left: var(--space-24);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.help-list li {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* =========================
+   Scrollbar Styling
+   ========================= */
+
+.cortex-feed::-webkit-scrollbar,
+.modal__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cortex-feed::-webkit-scrollbar-track,
+.modal__body::-webkit-scrollbar-track {
+  background: rgba(6, 8, 18, 0.9);
+}
+
+.cortex-feed::-webkit-scrollbar-thumb,
+.modal__body::-webkit-scrollbar-thumb {
+  background: rgba(107, 123, 255, 0.5);
+  border-radius: var(--radius-pill);
+}
+
+/* =========================
+   Responsive Adjustments
+   ========================= */
+
+/* Medium screens: compress columns a bit */
+@media (max-width: 1100px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.3fr) minmax(0, 1.05fr);
+  }
+}
+
+/* Narrow screens: stack panels vertically */
+@media (max-width: 900px) {
+  .app-main {
+    padding: var(--space-12) var(--space-12) var(--space-20);
+  }
+
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel {
+    min-height: auto;
+  }
+
+  .modal__body--notebook {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .accusation-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Very small screens: tighten padding and typography slightly */
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+
+  .intro-screen__content {
+    margin-top: var(--space-24);
+    padding: var(--space-16);
+  }
+
+  .hud-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
