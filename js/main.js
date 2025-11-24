@@ -122,6 +122,40 @@
     UI.renderAll();
   }
 
+  // Auto-discover clues based on how many unique locations have been visited.
+  // Returns an array of newly discovered clue objects.
+  function maybeAutoDiscoverCluesAfterLocationChange() {
+    const state = STATE.getState();
+    const visitedCount = state.visitedLocationIds.length;
+    const gained = [];
+
+    const addIfNew = (clueId) => {
+      if (!STATE.hasClue(clueId)) {
+        const clue = STATE.discoverClue(clueId);
+        if (clue) gained.push(clue);
+      }
+    };
+
+    // After visiting at least 1 unique location
+    if (visitedCount >= 1) {
+      addIfNew("locked_office");
+    }
+
+    // After visiting at least 2 unique locations
+    if (visitedCount >= 2) {
+      addIfNew("badge_log_anomaly");
+      addIfNew("audit_log_redactions");
+    }
+
+    // After visiting all 3 locations
+    if (visitedCount >= 3) {
+      addIfNew("rooftop_argument");
+      addIfNew("victim_exit_request");
+    }
+
+    return gained;
+  }
+
   function advanceDialogue() {
     console.log("Dialogue area clicked"); // debug to confirm wiring
 
