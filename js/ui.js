@@ -104,14 +104,16 @@ function getCurrentDialogueLine() {
 
   switch (ctx.kind) {
     case "intro":
-      return DATA.INTRO_DIALOGUE[ctx.index];
+      return DATA.INTRO_DIALOGUE[ctx.index] || null;
 
     case "location": {
       const script = DATA.LOCATION_DIALOGUE[ctx.targetId];
       if (!script) return null;
 
-      const firstVisit = !state.visitedLocationIds.includes(ctx.targetId);
-      const arr = firstVisit ? script.intro : script.repeat;
+      // IMPORTANT:
+      // I always use the "intro" sequence for locations right now.
+      // This matches what advanceDialogueIndex() in state.js uses.
+      const arr = script.intro;
       return arr[ctx.index] || null;
     }
 
