@@ -74,6 +74,21 @@
     modalEl.style.display = "none";
   }
 
+  // Wrapper around UI.addCortexMessage that respects the CORTEX hints toggle.
+  // - When hints are OFF, we still show "alert" and "critical" messages,
+  //   but we suppress normal chatter.
+  function cortexLog(text, severity = "normal") {
+    const state = STATE.getState();
+    const hintsEnabled = state.cortexHintsEnabled;
+
+    // Always allow critical/alert
+    if (!hintsEnabled && severity === "normal") {
+      return;
+    }
+
+    UI.addCortexMessage(text, severity);
+  }
+
   // Computes a pseudo-probability (0–100%) based on how strong the accusation is.
   // Weighted: culprit is 60%, motive 20%, clues 20%.
   function computeConfidencePercentage(score) {
