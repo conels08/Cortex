@@ -323,6 +323,22 @@ function getDiscoveredClues() {
     .filter(Boolean);
 }
 
+/**
+ * Reveals the next undiscovered "critical" clue from CASE_SOLUTION.criticalClueIds,
+ * in the order defined in CASE_SOLUTION.
+ *
+ * Returns the newly discovered clue object, or null if there are none left.
+ */
+function revealNextCriticalClue() {
+  const remaining = CASE_SOLUTION.criticalClueIds.filter(
+    (id) => !currentState.discoveredClueIds.includes(id)
+  );
+  if (remaining.length === 0) return null;
+
+  const nextId = remaining[0];
+  return discoverClue(nextId); // returns the clue object or null
+}
+
 /* ==========================================================================
    Suspect & Topic Management
    ========================================================================== */
