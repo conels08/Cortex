@@ -65,6 +65,9 @@ const notebook = {
   cluesList: document.getElementById("notebook-clues-list"),
   suspectsList: document.getElementById("notebook-suspects-list"),
   accusationForm: document.getElementById("accusation-form"),
+  accusedSuspectSelect: document.getElementById("accused-suspect-select"),
+  accusedMotiveSelect: document.getElementById("accused-motive-select"),
+  accusedEvidenceSelect: document.getElementById("accused-evidence-select"),
 };
 
 /* ==========================================================================
