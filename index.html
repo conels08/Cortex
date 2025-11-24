@@ -153,7 +153,7 @@
               - Displays the current line of dialogue.
               - Presents response/interaction options for the player.
           -->
-        <section id="dialogue-panel" class="panel panel--dialogue" aria-label="Dialogue and choices">
+        <section id="dialogue-area" class="panel panel--dialogue" aria-label="Dialogue and choices">
           <header class="panel__header panel__header--dialogue">
             <p id="dialogue-phase-label" class="dialogue-phase-label">
               <!-- e.g., "Intro", "Investigation", "Deduction", updated via JS -->
@@ -230,11 +230,11 @@
     </div>
 
     <div class="hud-footer__controls">
-      <button type="button" id="notebook-button" class="hud-footer__button" aria-haspopup="dialog">
+      <button type="button" id="notebook-toggle-button" class="hud-footer__button" aria-haspopup="dialog">
         Notebook / Deduction
       </button>
 
-      <button type="button" id="restart-button" class="hud-footer__button hud-footer__button--secondary">
+      <button type="button" id="restart-case-button" class="hud-footer__button hud-footer__button--secondary">
         Restart Case
       </button>
     </div>
