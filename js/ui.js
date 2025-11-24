@@ -367,6 +367,28 @@ function renderNotebook() {
       notebook.accusedEvidenceSelect.appendChild(opt);
     });
   }
+  // ----- Narrow options when player is "close" -----
+  const state = STATE.getState();
+
+  if (
+    state.score &&
+    state.score.culpritCorrect &&
+    state.score.criticalCluesFound < state.score.criticalCluesTotal
+  ) {
+    // CORTEX is confident in the culprit: lock the suspect field.
+    if (notebook.accusedSuspectSelect) {
+      notebook.accusedSuspectSelect.value = state.accusation.suspectId || "";
+      notebook.accusedSuspectSelect.disabled = true;
+      notebook.accusedSuspectSelect.title =
+        "CORTEX confidence high: culprit locked. Refine motive and key evidence.";
+    }
+  } else {
+    // Otherwise keep it editable
+    if (notebook.accusedSuspectSelect) {
+      notebook.accusedSuspectSelect.disabled = false;
+      notebook.accusedSuspectSelect.title = "";
+    }
+  }
 }
 
 /* ==========================================================================
