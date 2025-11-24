@@ -402,8 +402,8 @@ function advanceDialogueIndex() {
         );
         return "end";
       }
-      const isFirstVisit = !hasVisitedLocation(ctx.targetId);
-      dialogueArray = isFirstVisit ? locScript.intro : locScript.repeat;
+      // For now, always use the intro script sequence when in a location context.
+      dialogueArray = locScript.intro;
       break;
     }
     case "suspect": {
