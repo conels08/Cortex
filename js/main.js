@@ -160,10 +160,11 @@
       UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
     });
 
-    UI.addCortexMessage(
+    cortexLog(
       "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
       "normal"
     );
+
     UI.renderAll();
   }
 
@@ -175,15 +176,15 @@
     const { location, isFirstVisit } = result;
 
     if (isFirstVisit) {
-      UI.addCortexMessage(`New location visited: ${location.name}.`, "normal");
+      cortexLog(`New location visited: ${location.name}.`, "normal");
     } else {
-      UI.addCortexMessage(`Revisiting ${location.name}.`, "normal");
+      cortexLog(`Revisiting ${location.name}.`, "normal");
     }
 
     // Auto-discover any clues unlocked by this visit.
     const newClues = maybeAutoDiscoverCluesAfterLocationChange();
     newClues.forEach((clue) => {
-      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
+      cortexLog(`Clue logged: ${clue.name}.`, "normal");
     });
 
     STATE.setDialogueContext("location", locationId, 0);
@@ -215,13 +216,13 @@
   function restartCase() {
     STATE.resetGameState();
     STATE.setPhase(PHASES.INTRO);
-    UI.addCortexMessage("Case reset. Returning to briefing.", "alert");
+    cortexLog("Case reset. Returning to briefing.", "alert");
     UI.renderAll();
   }
 
   function toggleHints() {
     const enabled = STATE.toggleCortexHints();
-    UI.addCortexMessage(
+    cortexLog(
       enabled ? "CORTEX hints enabled." : "CORTEX hints muted.",
       enabled ? "normal" : "alert"
     );
@@ -244,13 +245,10 @@
     const confidence = computeConfidencePercentage(score); // "93.4"
 
     // Core result line
-    UI.addCortexMessage(
-      `Accusation recorded. Outcome tier: ${endingKey}.`,
-      "critical"
-    );
+    cortexLog(`Accusation recorded. Outcome tier: ${endingKey}.`, "critical");
 
     // Confidence + breakdown
-    UI.addCortexMessage(
+    cortexLog(
       `CORTEX confidence: ${confidence}% | culprit correct: ${
         score.culpritCorrect ? "yes" : "no"
       }; motive correct: ${
@@ -269,7 +267,7 @@
     ) {
       const newClue = STATE.revealNextCriticalClue();
       if (newClue) {
-        UI.addCortexMessage(
+        cortexLog(
           `Pattern variance below threshold. Unlocking latent clue: "${newClue.name}". ` +
             `Re-open the notebook and refine your motive and key evidence.`,
           "normal"
@@ -349,7 +347,7 @@
   STATE.setPhase(PHASES.INTRO);
   UI.renderAll();
 
-  UI.addCortexMessage(
+  cortexLog(
     "CORTEX online. Awaiting your decision to begin the investigation.",
     "normal"
   );
