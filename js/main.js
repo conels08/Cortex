@@ -17,29 +17,41 @@
     return;
   }
 
+  console.log("CORTEX main bootstrap running"); // sanity log
+
   const STATE = window.CORTEX_STATE;
   const UI = window.CORTEX_UI;
   const DATA = window.CORTEX_DATA;
   const PHASES = STATE.GAME_PHASES;
 
   /* -----------------------------------------------------------------------
-     DOM references (defensive: check before using)
+     DOM references
   ----------------------------------------------------------------------- */
 
   const beginButton = document.getElementById("begin-investigation");
   const locationButtonsContainer = document.getElementById("location-buttons");
+  const dialogueArea = document.getElementById("dialogue-area");
+
   const notebookToggleButton = document.getElementById(
     "notebook-toggle-button"
   );
   const restartButton = document.getElementById("restart-case-button");
-  const dialogueArea = document.getElementById("dialogue-area");
+  const toggleHintsButton = document.getElementById("toggle-hints-button");
+
   const notebookModal = document.getElementById("notebook-modal");
   const closeNotebookButton = document.getElementById("close-notebook-button");
-  const toggleHintsButton = document.getElementById("toggle-hints-button");
   const accusationForm = document.getElementById("accusation-form");
 
+  const aboutButton = document.getElementById("about-button");
+  const aboutModal = document.getElementById("about-modal");
+  const closeAboutButton = document.getElementById("close-about-button");
+
+  const helpButton = document.getElementById("help-button");
+  const helpModal = document.getElementById("help-modal");
+  const closeHelpButton = document.getElementById("close-help-button");
+
   /* -----------------------------------------------------------------------
-     Helper: safe addEventListener
+     Small helpers
   ----------------------------------------------------------------------- */
 
   function on(el, event, handler) {
@@ -47,23 +59,38 @@
     el.addEventListener(event, handler);
   }
 
+  function openModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.remove("modal--hidden");
+    modalEl.hidden = false;
+
+    // Force visible in case base .modal CSS is display:none
+    modalEl.style.display = "flex";
+  }
+
+  function closeModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.add("modal--hidden");
+    modalEl.hidden = true;
+
+    // Hide it again
+    modalEl.style.display = "none";
+  }
+
   /* -----------------------------------------------------------------------
      Core actions
   ----------------------------------------------------------------------- */
 
   function startInvestigation() {
-    // Move from INTRO to INVESTIGATION, set initial location, and reset dialogue.
+    STATE.resetGameState(); // clean slate
     STATE.setPhase(PHASES.INVESTIGATION);
 
-    // Default starting location: Lab.
+    // Default starting location: first in DATA.LOCATIONS
     const firstLoc = DATA.LOCATIONS[0];
     if (firstLoc) {
       STATE.setCurrentLocation(firstLoc.id);
+      STATE.setDialogueContext("location", firstLoc.id, 0);
     }
-
-    // Dialogue context: the first intro line has already been shown on intro screen,
-    // so we switch to a location-based context.
-    STATE.setDialogueContext("location", firstLoc ? firstLoc.id : null, 0);
 
     UI.addCortexMessage(
       "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
@@ -74,25 +101,24 @@
 
   function goToLocation(locationId) {
     if (!locationId) return;
-
     const result = STATE.setCurrentLocation(locationId);
     if (!result) return;
 
     const { location, isFirstVisit } = result;
 
     if (isFirstVisit) {
-      UI.addCortexMessage(
-        `New location visited: ${location.name}. Observing environment...`,
-        "normal"
-      );
+      UI.addCortexMessage(`New location visited: ${location.name}.`, "normal");
+    } else {
+      UI.addCortexMessage(`Revisiting ${location.name}.`, "normal");
     }
 
-    // Reset dialogue context for this location.
     STATE.setDialogueContext("location", locationId, 0);
     UI.renderAll();
   }
 
   function advanceDialogue() {
+    console.log("Dialogue area clicked"); // debug to confirm wiring
+
     const outcome = STATE.advanceDialogueIndex();
 
     if (outcome === "continue") {
@@ -100,25 +126,24 @@
       return;
     }
 
-    // outcome === "end": in a real branching system we’d now present choices
-    // or wait for the player to pick a location / suspect.
-    // For now, just leave the last line on screen.
+    // outcome === "end" – no extra behavior yet
   }
 
   function openNotebook() {
-    if (!notebookModal) return;
     UI.renderNotebook();
-    notebookModal.classList.add("notebook--open");
+    openModal(notebookModal);
   }
 
   function closeNotebook() {
-    if (!notebookModal) return;
-    notebookModal.classList.remove("notebook--open");
+    closeModal(notebookModal);
   }
 
   function restartCase() {
     STATE.resetGameState();
     UI.addCortexMessage("Case reset. Returning to briefing.", "alert");
+
+    // Back to intro phase
+    STATE.setPhase(PHASES.INTRO);
     UI.renderAll();
   }
 
@@ -132,8 +157,9 @@
   }
 
   function handleAccusationSubmit(event) {
+    if (event) event.preventDefault();
+
     if (!accusationForm) return;
-    event.preventDefault();
 
     const formData = new FormData(accusationForm);
 
@@ -146,42 +172,60 @@
     const { score, endingKey } = STATE.evaluateAccusation();
 
     UI.addCortexMessage(
-      `Accusation recorded. Evaluating evidence... Outcome tier: ${endingKey}.`,
+      `Accusation recorded. Outcome tier: ${endingKey}.`,
       "critical"
     );
-    UI.renderAll();
-
-    // Optionally, you could also show score details in CORTEX feed:
     UI.addCortexMessage(
       `Culprit correct: ${score.culpritCorrect ? "yes" : "no"}; ` +
         `motive correct: ${score.motiveCorrect ? "yes" : "no"}; ` +
         `critical clues: ${score.criticalCluesFound}/${score.criticalCluesTotal}.`,
       "normal"
     );
+
+    UI.renderAll();
+    closeNotebook();
+  }
+
+  /* -----------------------------------------------------------------------
+     About / Help actions
+  ----------------------------------------------------------------------- */
+
+  function openAbout() {
+    openModal(aboutModal);
+  }
+
+  function closeAbout() {
+    closeModal(aboutModal);
+  }
+
+  function openHelp() {
+    openModal(helpModal);
+  }
+
+  function closeHelp() {
+    closeModal(helpModal);
   }
 
   /* -----------------------------------------------------------------------
      Event wiring
   ----------------------------------------------------------------------- */
 
-  // Begin Investigation button on intro screen
+  // Intro → Investigation
   on(beginButton, "click", startInvestigation);
 
-  // Location buttons (event delegation)
+  // Location navigation (event delegation)
   on(locationButtonsContainer, "click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-
     const locId = target.dataset.locationId;
     if (!locId) return;
-
     goToLocation(locId);
   });
 
   // Dialogue click-to-advance
   on(dialogueArea, "click", advanceDialogue);
 
-  // Notebook open / close
+  // Notebook open/close
   on(notebookToggleButton, "click", openNotebook);
   on(closeNotebookButton, "click", closeNotebook);
 
@@ -191,18 +235,26 @@
   // Hints toggle
   on(toggleHintsButton, "click", toggleHints);
 
-  // Accusation form submit (inside notebook)
+  // Accusation form
   on(accusationForm, "submit", handleAccusationSubmit);
 
+  // About modal
+  on(aboutButton, "click", openAbout);
+  on(closeAboutButton, "click", closeAbout);
+
+  // Help modal
+  on(helpButton, "click", openHelp);
+  on(closeHelpButton, "click", closeHelp);
+
   /* -----------------------------------------------------------------------
-     Initial render on load
+     Initial render
   ----------------------------------------------------------------------- */
 
-  // On first load, make sure state is clean and UI matches it.
+  // Start at intro with a clean state
   STATE.resetGameState();
+  STATE.setPhase(PHASES.INTRO);
   UI.renderAll();
 
-  // Optionally seed the CORTEX feed with a welcome line.
   UI.addCortexMessage(
     "CORTEX online. Awaiting your decision to begin the investigation.",
     "normal"
