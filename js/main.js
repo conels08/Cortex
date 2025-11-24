@@ -118,6 +118,12 @@
       UI.addCortexMessage(`Revisiting ${location.name}.`, "normal");
     }
 
+    // Auto-discover any clues unlocked by this visit.
+    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
+    newClues.forEach((clue) => {
+      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
+    });
+
     STATE.setDialogueContext("location", locationId, 0);
     UI.renderAll();
   }
