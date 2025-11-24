@@ -77,6 +77,24 @@
     modalEl.style.display = "none";
   }
 
+  // Computes a pseudo-probability (0–100%) based on how strong the accusation is.
+  // Weighted: culprit is 60%, motive 20%, clues 20%.
+  function computeConfidencePercentage(score) {
+    const clueFraction = score.criticalCluesTotal
+      ? score.criticalCluesFound / score.criticalCluesTotal
+      : 0;
+
+    let value =
+      (score.culpritCorrect ? 0.6 : 0) +
+      (score.motiveCorrect ? 0.2 : 0) +
+      clueFraction * 0.2;
+
+    // Clamp to [0, 1] just to be safe
+    value = Math.max(0, Math.min(1, value));
+
+    return (value * 100).toFixed(1); // e.g. "93.4"
+  }
+
   /* -----------------------------------------------------------------------
      Core actions
   ----------------------------------------------------------------------- */
