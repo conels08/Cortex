@@ -92,6 +92,12 @@
       STATE.setDialogueContext("location", firstLoc.id, 0);
     }
 
+    // Seed a couple of core clues so the UI demonstrates the system
+    if (STATE.discoverClue) {
+      STATE.discoverClue("locked_office");
+      STATE.discoverClue("badge_log_anomaly");
+    }
+
     UI.addCortexMessage(
       "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
       "normal"

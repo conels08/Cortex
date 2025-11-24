@@ -275,21 +275,31 @@ function renderCortexStatus() {
  * Renders the notebook modal contents (clues & suspects).
  */
 function renderNotebook() {
-  // Clues
-  notebook.cluesList.innerHTML = "";
   const discovered = STATE.getDiscoveredClues();
-  discovered.forEach((clue) => {
-    const item = document.createElement("div");
-    item.className = "notebook-card";
-    item.innerHTML = `
-      <h4>${clue.name}</h4>
-      <p>${clue.detail}</p>
-      <p><strong>Tags:</strong> ${clue.tags.join(", ")}</p>
-    `;
-    notebook.cluesList.appendChild(item);
-  });
 
-  // Suspects
+  // ----- Clues -----
+  notebook.cluesList.innerHTML = "";
+
+  if (!discovered.length) {
+    const empty = document.createElement("p");
+    empty.className = "notebook-empty";
+    empty.textContent =
+      "No formal clues logged yet. Explore each location and watch CORTEX for anomalies.";
+    notebook.cluesList.appendChild(empty);
+  } else {
+    discovered.forEach((clue) => {
+      const item = document.createElement("div");
+      item.className = "notebook-card";
+      item.innerHTML = `
+        <h4>${clue.name}</h4>
+        <p>${clue.detail}</p>
+        <p><strong>Tags:</strong> ${clue.tags.join(", ")}</p>
+      `;
+      notebook.cluesList.appendChild(item);
+    });
+  }
+
+  // ----- Suspects -----
   notebook.suspectsList.innerHTML = "";
   DATA.SUSPECTS.forEach((sus) => {
     const item = document.createElement("div");
@@ -302,6 +312,61 @@ function renderNotebook() {
     `;
     notebook.suspectsList.appendChild(item);
   });
+
+  // ----- Accusation selects -----
+  // Suspects
+  if (notebook.accusedSuspectSelect) {
+    notebook.accusedSuspectSelect.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "-- Select suspect --";
+    notebook.accusedSuspectSelect.appendChild(placeholder);
+
+    DATA.SUSPECTS.forEach((sus) => {
+      const opt = document.createElement("option");
+      opt.value = sus.id; // assumes each suspect has an "id"
+      opt.textContent = sus.name;
+      notebook.accusedSuspectSelect.appendChild(opt);
+    });
+  }
+
+  // Motives – simple static list for now
+  if (notebook.accusedMotiveSelect) {
+    notebook.accusedMotiveSelect.innerHTML = "";
+    const motivePlaceholder = document.createElement("option");
+    motivePlaceholder.value = "";
+    motivePlaceholder.textContent = "-- Select motive --";
+    notebook.accusedMotiveSelect.appendChild(motivePlaceholder);
+
+    const motives = [
+      { id: "greed", label: "Greed / Profit" },
+      { id: "fear", label: "Fear / Self-Preservation" },
+      { id: "coverup", label: "Corporate Cover-Up" },
+    ];
+
+    motives.forEach((m) => {
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.textContent = m.label;
+      notebook.accusedMotiveSelect.appendChild(opt);
+    });
+  }
+
+  // Evidence – based on discovered clues
+  if (notebook.accusedEvidenceSelect) {
+    notebook.accusedEvidenceSelect.innerHTML = "";
+    const evPlaceholder = document.createElement("option");
+    evPlaceholder.value = "";
+    evPlaceholder.textContent = "-- Select key evidence --";
+    notebook.accusedEvidenceSelect.appendChild(evPlaceholder);
+
+    discovered.forEach((clue) => {
+      const opt = document.createElement("option");
+      opt.value = clue.id;
+      opt.textContent = clue.name;
+      notebook.accusedEvidenceSelect.appendChild(opt);
+    });
+  }
 }
 
 /* ==========================================================================
