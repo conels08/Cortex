@@ -222,7 +222,6 @@
 
   function handleAccusationSubmit(event) {
     if (event) event.preventDefault();
-
     if (!accusationForm) return;
 
     const formData = new FormData(accusationForm);
@@ -234,17 +233,40 @@
     STATE.setAccusation({ suspectId, motiveId, evidenceId });
 
     const { score, endingKey } = STATE.evaluateAccusation();
+    const confidence = computeConfidencePercentage(score); // "93.4"
 
+    // Core result line
     UI.addCortexMessage(
       `Accusation recorded. Outcome tier: ${endingKey}.`,
       "critical"
     );
+
+    // Confidence + breakdown
     UI.addCortexMessage(
-      `Culprit correct: ${score.culpritCorrect ? "yes" : "no"}; ` +
-        `motive correct: ${score.motiveCorrect ? "yes" : "no"}; ` +
-        `critical clues: ${score.criticalCluesFound}/${score.criticalCluesTotal}.`,
+      `CORTEX confidence: ${confidence}% | culprit correct: ${
+        score.culpritCorrect ? "yes" : "no"
+      }; motive correct: ${
+        score.motiveCorrect ? "yes" : "no"
+      }; critical clues: ${score.criticalCluesFound}/${
+        score.criticalCluesTotal
+      }.`,
       "normal"
     );
+
+    // If the player is close but not perfect, offer a "final insight"
+    if (
+      endingKey === "close" &&
+      score.criticalCluesFound < score.criticalCluesTotal
+    ) {
+      const newClue = STATE.revealNextCriticalClue();
+      if (newClue) {
+        UI.addCortexMessage(
+          `Pattern variance below threshold. Unlocking latent clue: "${newClue.name}". ` +
+            `Re-open the notebook and refine your motive and key evidence.`,
+          "normal"
+        );
+      }
+    }
 
     UI.renderAll();
     closeNotebook();
@@ -300,7 +322,7 @@
   on(toggleHintsButton, "click", toggleHints);
 
   // Accusation form
-  on(accusationForm, "submit", handleAccusationSubmit);
+  on(accusationForm, "submit", AccusationSubmit);
 
   // About modal
   on(aboutButton, "click", openAbout);
