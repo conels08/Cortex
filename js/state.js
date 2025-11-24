@@ -600,6 +600,7 @@ window.CORTEX_STATE = {
   discoverClue,
   hasClue,
   getDiscoveredClues,
+  revealNextCriticalClue,
 
   // Suspects/topics
   markSuspectIntroSeen,
