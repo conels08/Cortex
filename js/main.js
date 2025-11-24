@@ -17,7 +17,7 @@
     return;
   }
 
-  console.log("CORTEX main bootstrap running"); // sanity log
+  console.log("CORTEX main bootstrap running");
 
   const STATE = window.CORTEX_STATE;
   const UI = window.CORTEX_UI;
@@ -63,8 +63,7 @@
     if (!modalEl) return;
     modalEl.classList.remove("modal--hidden");
     modalEl.hidden = false;
-
-    // Force visible in case base .modal CSS is display:none
+    // Ensure it is actually visible even if base .modal is display:none
     modalEl.style.display = "flex";
   }
 
@@ -72,8 +71,6 @@
     if (!modalEl) return;
     modalEl.classList.add("modal--hidden");
     modalEl.hidden = true;
-
-    // Hide it again
     modalEl.style.display = "none";
   }
 
@@ -89,61 +86,8 @@
       (score.motiveCorrect ? 0.2 : 0) +
       clueFraction * 0.2;
 
-    // Clamp to [0, 1] just to be safe
     value = Math.max(0, Math.min(1, value));
-
     return (value * 100).toFixed(1); // e.g. "93.4"
-  }
-
-  /* -----------------------------------------------------------------------
-     Core actions
-  ----------------------------------------------------------------------- */
-
-  function startInvestigation() {
-    STATE.resetGameState(); // clean slate
-    STATE.setPhase(PHASES.INVESTIGATION);
-
-    // Default starting location: first in DATA.LOCATIONS
-    const firstLoc = DATA.LOCATIONS[0];
-    if (firstLoc) {
-      STATE.setCurrentLocation(firstLoc.id);
-      STATE.setDialogueContext("location", firstLoc.id, 0);
-    }
-
-    // Auto-discover any clues tied to the initial location/visit count.
-    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
-    newClues.forEach((clue) => {
-      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
-    });
-
-    UI.addCortexMessage(
-      "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
-      "normal"
-    );
-    UI.renderAll();
-  }
-
-  function goToLocation(locationId) {
-    if (!locationId) return;
-    const result = STATE.setCurrentLocation(locationId);
-    if (!result) return;
-
-    const { location, isFirstVisit } = result;
-
-    if (isFirstVisit) {
-      UI.addCortexMessage(`New location visited: ${location.name}.`, "normal");
-    } else {
-      UI.addCortexMessage(`Revisiting ${location.name}.`, "normal");
-    }
-
-    // Auto-discover any clues unlocked by this visit.
-    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
-    newClues.forEach((clue) => {
-      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
-    });
-
-    STATE.setDialogueContext("location", locationId, 0);
-    UI.renderAll();
   }
 
   // Auto-discover clues based on how many unique locations have been visited.
@@ -180,8 +124,59 @@
     return gained;
   }
 
+  /* -----------------------------------------------------------------------
+     Core actions
+  ----------------------------------------------------------------------- */
+
+  function startInvestigation() {
+    STATE.resetGameState(); // clean slate
+    STATE.setPhase(PHASES.INVESTIGATION);
+
+    // Default starting location: first in DATA.LOCATIONS
+    const firstLoc = DATA.LOCATIONS[0];
+    if (firstLoc) {
+      STATE.setCurrentLocation(firstLoc.id);
+      STATE.setDialogueContext("location", firstLoc.id, 0);
+    }
+
+    // Auto-discover any clues tied to initial visit count.
+    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
+    newClues.forEach((clue) => {
+      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
+    });
+
+    UI.addCortexMessage(
+      "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
+      "normal"
+    );
+    UI.renderAll();
+  }
+
+  function goToLocation(locationId) {
+    if (!locationId) return;
+    const result = STATE.setCurrentLocation(locationId);
+    if (!result) return;
+
+    const { location, isFirstVisit } = result;
+
+    if (isFirstVisit) {
+      UI.addCortexMessage(`New location visited: ${location.name}.`, "normal");
+    } else {
+      UI.addCortexMessage(`Revisiting ${location.name}.`, "normal");
+    }
+
+    // Auto-discover any clues unlocked by this visit.
+    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
+    newClues.forEach((clue) => {
+      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
+    });
+
+    STATE.setDialogueContext("location", locationId, 0);
+    UI.renderAll();
+  }
+
   function advanceDialogue() {
-    console.log("Dialogue area clicked"); // debug to confirm wiring
+    console.log("Dialogue area clicked"); // debug
 
     const outcome = STATE.advanceDialogueIndex();
 
@@ -190,7 +185,7 @@
       return;
     }
 
-    // outcome === "end" – no extra behavior yet
+    // outcome === "end" – last line stays for now
   }
 
   function openNotebook() {
@@ -204,10 +199,8 @@
 
   function restartCase() {
     STATE.resetGameState();
-    UI.addCortexMessage("Case reset. Returning to briefing.", "alert");
-
-    // Back to intro phase
     STATE.setPhase(PHASES.INTRO);
+    UI.addCortexMessage("Case reset. Returning to briefing.", "alert");
     UI.renderAll();
   }
 
@@ -256,7 +249,8 @@
     // If the player is close but not perfect, offer a "final insight"
     if (
       endingKey === "close" &&
-      score.criticalCluesFound < score.criticalCluesTotal
+      score.criticalCluesFound < score.criticalCluesTotal &&
+      typeof STATE.revealNextCriticalClue === "function"
     ) {
       const newClue = STATE.revealNextCriticalClue();
       if (newClue) {
@@ -322,7 +316,7 @@
   on(toggleHintsButton, "click", toggleHints);
 
   // Accusation form
-  on(accusationForm, "submit", AccusationSubmit);
+  on(accusationForm, "submit", handleAccusationSubmit);
 
   // About modal
   on(aboutButton, "click", openAbout);
@@ -336,7 +330,6 @@
      Initial render
   ----------------------------------------------------------------------- */
 
-  // Start at intro with a clean state
   STATE.resetGameState();
   STATE.setPhase(PHASES.INTRO);
   UI.renderAll();
