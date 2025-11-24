@@ -76,13 +76,19 @@ const notebook = {
  */
 function renderScreens() {
   const { phase } = STATE.getState();
-
   const introActive = phase === UI_GAME_PHASES.INTRO;
 
-  screens.intro.classList.toggle("screen--active", introActive);
-  screens.game.classList.toggle("screen--active", !introActive);
+  if (screens.intro) {
+    screens.intro.classList.toggle("screen--active", introActive);
+    screens.intro.classList.toggle("screen--hidden", !introActive);
+    screens.intro.hidden = !introActive;
+  }
 
-  screens.game.hidden = introActive;
+  if (screens.game) {
+    screens.game.classList.toggle("screen--active", !introActive);
+    screens.game.classList.toggle("screen--hidden", introActive);
+    screens.game.hidden = introActive;
+  }
 }
 
 /* ==========================================================================
