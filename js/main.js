@@ -92,11 +92,11 @@
       STATE.setDialogueContext("location", firstLoc.id, 0);
     }
 
-    // Seed a couple of core clues so the UI demonstrates the system
-    if (STATE.discoverClue) {
-      STATE.discoverClue("locked_office");
-      STATE.discoverClue("badge_log_anomaly");
-    }
+    // Auto-discover any clues tied to the initial location/visit count.
+    const newClues = maybeAutoDiscoverCluesAfterLocationChange();
+    newClues.forEach((clue) => {
+      UI.addCortexMessage(`Clue logged: ${clue.name}.`, "normal");
+    });
 
     UI.addCortexMessage(
       "Investigation initialized. Locations unlocked: Lab, Server Vault, Rooftop.",
