@@ -634,9 +634,7 @@ const ENDINGS = {
       id: "ending_perfect_1",
       speaker: "CORTEX",
       speakerType: "ai",
-      text:
-        "Your accusation aligns with the highest-probability scenario. Suspect, motive, and evidence—" +
-        "all consistent. Statistical confidence: 97.3%.",
+      text: "Your accusation aligns with the highest-probability scenario. Suspect, motive, and evidence—all consistent. Statistical confidence: 100.0%.",
     },
     {
       id: "ending_perfect_2",
