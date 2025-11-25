@@ -147,17 +147,74 @@ function renderDialogue() {
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
-  const phase = STATE.getState().phase;
-  dialoguePanel.phaseLabel.textContent =
-    {
-      [UI_GAME_PHASES.INTRO]: "Introduction",
-      [UI_GAME_PHASES.INVESTIGATION]: "Investigation",
-      [UI_GAME_PHASES.DEDUCTION]: "Deduction",
-      [UI_GAME_PHASES.ENDING]: "Conclusion",
-    }[phase] || "";
-
   // Choices will be injected later by main.js when we add branching.
   dialoguePanel.choicesContainer.innerHTML = "";
+}
+
+function renderPhaseLabel() {
+  const state = STATE.getState();
+  const phase = state.phase;
+
+  if (!dialoguePanel.phaseLabel) return;
+
+  switch (phase) {
+    case UI_GAME_PHASES.INTRO:
+      dialoguePanel.phaseLabel.textContent = "Briefing";
+      break;
+
+    case UI_GAME_PHASES.INVESTIGATION:
+      dialoguePanel.phaseLabel.textContent = "Investigation";
+      break;
+
+    case UI_GAME_PHASES.DEDUCTION:
+      dialoguePanel.phaseLabel.textContent = "Deduction";
+      break;
+
+    case UI_GAME_PHASES.ACCUSATION:
+      dialoguePanel.phaseLabel.textContent = "Accusation Submitted";
+      break;
+
+    case UI_GAME_PHASES.ENDING:
+      dialoguePanel.phaseLabel.textContent =
+        "Outcome: " + (state.endingKey || "unknown").toUpperCase();
+      break;
+
+    default:
+      dialoguePanel.phaseLabel.textContent = "";
+  }
+}
+
+function renderPhaseLabel() {
+  const state = STATE.getState();
+  const phase = state.phase;
+
+  if (!dialoguePanel.phaseLabel) return;
+
+  switch (phase) {
+    case UI_GAME_PHASES.INTRO:
+      dialoguePanel.phaseLabel.textContent = "Briefing";
+      break;
+
+    case UI_GAME_PHASES.INVESTIGATION:
+      dialoguePanel.phaseLabel.textContent = "Investigation";
+      break;
+
+    case UI_GAME_PHASES.DEDUCTION:
+      dialoguePanel.phaseLabel.textContent = "Deduction";
+      break;
+
+    case UI_GAME_PHASES.ACCUSATION:
+      dialoguePanel.phaseLabel.textContent = "Accusation Submitted";
+      break;
+
+    case UI_GAME_PHASES.ENDING:
+      dialoguePanel.phaseLabel.textContent =
+        "Outcome: " + (state.endingKey || "unknown").toUpperCase();
+      break;
+
+    default:
+      dialoguePanel.phaseLabel.textContent = "";
+  }
 }
 
 /* ==========================================================================
@@ -404,6 +461,7 @@ function renderAll() {
   renderScenePanel();
   renderLocationButtons();
   renderDialogue();
+  renderPhaseLabel();
   renderClues();
   renderCortexStatus();
 }
