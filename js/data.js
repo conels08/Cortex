@@ -665,6 +665,57 @@ const ENDINGS = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// Location-specific investigation actions
+// ---------------------------------------------------------------------------
+
+const LOCATION_ACTIONS = {
+  lab: [
+    {
+      id: "lab_deep_scan",
+      label: "Run a forbidden deep scan of door logs",
+      description:
+        "Push CORTEX past its safe limits to scrape every anomalous badge event in the last 48 hours.",
+      effects: {
+        // Reveal the anomalous badge event clue.
+        discoverClues: ["badge_log_anomaly"],
+        cortexMessage:
+          "Deep scan complete. Door logs show an entry at 02:13 a.m. with no matching camera frame. Someone walked through the lab invisibly—at least on paper.",
+        cortexVariant: "critical",
+      },
+    },
+    {
+      id: "lab_quick_sweep",
+      label: "Do a quick sweep and get out of here",
+      description:
+        "Trust your instincts, not the logs. Scan the room, avoid touching anything that screams 'internal investigation'.",
+      effects: {
+        // No new clue, just a bit of flavor.
+        cortexMessage:
+          "Surface sweep complete. No obvious tampering… but your shoes squeak louder than the evidence.",
+        cortexVariant: "normal",
+      },
+    },
+    {
+      id: "lab_interview_milo",
+      label: "Corner Milo for a late-night debrief",
+      description:
+        "Ask the jittery junior dev what really happened after the last push went live.",
+      effects: {
+        // This sets us up for future suspect-branching.
+        unlockSuspectTopics: [{ suspectId: "milo", topicId: "after_hours" }],
+        cortexMessage:
+          "Interview transcript flagged. Milo stutters every time he mentions the deployment window. Marked 02:13 a.m. as ‘interesting noise.’",
+        cortexVariant: "alert",
+      },
+    },
+  ],
+
+  // We’ll add actions for these later.
+  server_vault: [],
+  rooftop: [],
+};
+
 /* ==========================================================================
    Export surface (global)
    ========================================================================== */
@@ -686,4 +737,5 @@ window.CORTEX_DATA = {
   LOCATION_DIALOGUE,
   SUSPECT_DIALOGUE,
   ENDINGS,
+  LOCATION_ACTIONS,
 };
