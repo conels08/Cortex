@@ -30,7 +30,9 @@
 
   const beginButton = document.getElementById("begin-investigation");
   const locationButtonsContainer = document.getElementById("location-buttons");
-  const dialogueArea = document.getElementById("dialogue-area");
+
+  const dialogueTextEl = document.getElementById("dialogue-text");
+  const choicesPanelEl = document.getElementById("choices-panel");
 
   const notebookToggleButton = document.getElementById(
     "notebook-toggle-button"
@@ -191,17 +193,19 @@
     UI.renderAll();
   }
 
-  function advanceDialogue() {
-    console.log("Dialogue area clicked"); // debug
+  function handleDialogueTextClick(event) {
+    // Only advance when the user actually clicks the text area,
+    // not if something weird bubbles in here.
+    if (event.target !== dialogueTextEl) return;
 
-    const outcome = STATE.advanceDialogueIndex();
+    const result = STATE.advanceDialogueIndex();
 
-    if (outcome === "continue") {
-      UI.renderAll();
-      return;
+    if (result === "continue") {
+      UI.renderDialogue();
+    } else if (result === "end") {
+      // For now, we don't auto-transition on end-of-sequence.
+      // You can later hook in phase changes here if desired.
     }
-
-    // outcome === "end" – last line stays for now
   }
 
   function openNotebook() {
@@ -315,9 +319,6 @@
     goToLocation(locId);
   });
 
-  // Dialogue click-to-advance
-  on(dialogueArea, "click", advanceDialogue);
-
   // Notebook open/close
   on(notebookToggleButton, "click", openNotebook);
   on(closeNotebookButton, "click", closeNotebook);
@@ -327,6 +328,9 @@
 
   // Hints toggle
   on(toggleHintsButton, "click", toggleHints);
+
+  // Dialogue click to advance
+  on(dialogueTextEl, "click", handleDialogueTextClick);
 
   // Accusation form
   on(accusationForm, "submit", handleAccusationSubmit);
