@@ -321,12 +321,15 @@
     const clue = STATE.discoverClue("audit_log_redactions");
     if (clue) {
       cortexLog(`Critical anomaly uncovered: "${clue.name}".`, "critical");
-      UI.renderClues();
     }
 
-    // Advance dialogue to a special reaction line
-    STATE.setDialogueContext("location", "lab", 1);
-    UI.renderDialogue();
+    // Keep the clue HUD in sync, but do NOT advance dialogue
+    if (typeof UI.renderClues === "function") {
+      UI.renderClues();
+    } else {
+      // Fallback if you prefer: re-render everything
+      UI.renderAll();
+    }
   }
 
   function handleLabIntegritySweep() {
