@@ -340,14 +340,17 @@
       const clue = STATE.discoverClue("badge_log_anomaly");
       if (clue) {
         cortexLog(`Integrity sweep logged anomaly: "${clue.name}".`, "normal");
-        UI.renderClues();
       }
     } else {
       cortexLog("No new anomalies detected in available logs.", "normal");
     }
 
-    STATE.setDialogueContext("location", "lab", 2);
-    UI.renderDialogue();
+    // Keep the clue HUD in sync, but do NOT advance dialogue
+    if (typeof UI.renderClues === "function") {
+      UI.renderClues();
+    } else {
+      UI.renderAll();
+    }
   }
 
   function handleLabCornerMilo() {
@@ -366,11 +369,14 @@
         `Milo admitted something unexpected: "${clue.name}".`,
         "critical"
       );
-      UI.renderClues();
     }
 
-    STATE.setDialogueContext("location", "lab", 3);
-    UI.renderDialogue();
+    // Update clues HUD without touching dialogue
+    if (typeof UI.renderClues === "function") {
+      UI.renderClues();
+    } else {
+      UI.renderAll();
+    }
   }
 
   // Intro → Investigation
@@ -410,23 +416,28 @@
   on(closeHelpButton, "click", closeHelp);
 
   // Lab action buttons (event delegation)
+  // Lab action buttons (event delegation)
   on(choicesPanelEl, "click", (event) => {
     const btn = event.target;
-    if (!(btn instanceof HTMLElement)) return;
+    if (!(btn instanceof HTMLButtonElement)) return;
 
     const actionId = btn.dataset.actionId;
     if (!actionId) return;
+
+    // Mark this specific choice as used
+    btn.disabled = true;
+    btn.classList.add("dialogue-choice-button--used");
 
     switch (actionId) {
       case "lab_deep_scan":
         handleLabDeepScan();
         break;
 
-      case "lab_quick_sweep": // or lab_integrity_sweep if that's what you named it in LOCATION_ACTIONS
+      case "lab_quick_sweep":
         handleLabIntegritySweep();
         break;
 
-      case "lab_interview_milo": // match the id from LOCATION_ACTIONS
+      case "lab_interview_milo":
         handleLabCornerMilo();
         break;
 

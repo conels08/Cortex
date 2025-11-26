@@ -147,8 +147,55 @@ function renderDialogue() {
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
-  // Choices will be injected later by main.js when we add branching.
-  dialoguePanel.choicesContainer.innerHTML = "";
+  // Phase label text
+  renderPhaseLabel();
+
+  const state = STATE.getState();
+  const ctx = state.dialogueContext;
+
+  const isLabLocation =
+    state.phase === UI_GAME_PHASES.INVESTIGATION &&
+    ctx.kind === "location" &&
+    ctx.targetId === "lab";
+
+  // Only build the Lab choices the first time we hit the Lab intro line.
+  // After that, we leave them alone so they stay visible while the player
+  // clicks through dialogue.
+  if (isLabLocation && ctx.index === 0) {
+    renderLabChoices();
+  }
+}
+
+function renderLabChoices() {
+  const container = dialoguePanel.choicesContainer;
+  if (!container) return;
+
+  // Rebuild the three decision buttons
+  container.innerHTML = "";
+
+  const actions = [
+    {
+      id: "lab_deep_scan",
+      label: "Run a forbidden deep scan and get out of here.",
+    },
+    {
+      id: "lab_quick_sweep",
+      label: "Do a quick integrity sweep and move on.",
+    },
+    {
+      id: "lab_interview_milo",
+      label: "Corner Milo for a late-night debrief.",
+    },
+  ];
+
+  actions.forEach((action) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dialogue-choice-button";
+    btn.dataset.actionId = action.id;
+    btn.textContent = action.label;
+    container.appendChild(btn);
+  });
 }
 
 function renderPhaseLabel() {
