@@ -184,37 +184,48 @@ function renderPhaseLabel() {
   }
 }
 
-function renderPhaseLabel() {
+/**
+ * Renders location-specific investigation actions into the choices panel.
+ * For now, this is driven by LOCATION_ACTIONS in data.js and only wired
+ * for the investigation phase.
+ */
+function renderLocationActions() {
   const state = STATE.getState();
   const phase = state.phase;
+  const locId = state.currentLocationId;
 
-  if (!dialoguePanel.phaseLabel) return;
+  if (!dialoguePanel.choicesContainer) return;
 
-  switch (phase) {
-    case UI_GAME_PHASES.INTRO:
-      dialoguePanel.phaseLabel.textContent = "Briefing";
-      break;
+  // Always start with an empty choices panel. renderDialogue() already
+  // cleared it, but we guard against stale content here as well.
+  dialoguePanel.choicesContainer.innerHTML = "";
 
-    case UI_GAME_PHASES.INVESTIGATION:
-      dialoguePanel.phaseLabel.textContent = "Investigation";
-      break;
-
-    case UI_GAME_PHASES.DEDUCTION:
-      dialoguePanel.phaseLabel.textContent = "Deduction";
-      break;
-
-    case UI_GAME_PHASES.ACCUSATION:
-      dialoguePanel.phaseLabel.textContent = "Accusation Submitted";
-      break;
-
-    case UI_GAME_PHASES.ENDING:
-      dialoguePanel.phaseLabel.textContent =
-        "Outcome: " + (state.endingKey || "unknown").toUpperCase();
-      break;
-
-    default:
-      dialoguePanel.phaseLabel.textContent = "";
+  // Only show actions during the investigation phase and when a location
+  // is actually selected.
+  if (phase !== UI_GAME_PHASES.INVESTIGATION || !locId) {
+    return;
   }
+
+  const actionsByLocation = DATA.LOCATION_ACTIONS || {};
+  const actions = actionsByLocation[locId];
+
+  if (!actions || !actions.length) {
+    return;
+  }
+
+  actions.forEach((action) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice-button";
+    btn.textContent = action.label;
+    btn.dataset.actionId = action.id;
+
+    if (action.description) {
+      btn.title = action.description;
+    }
+
+    dialoguePanel.choicesContainer.appendChild(btn);
+  });
 }
 
 /* ==========================================================================
@@ -462,6 +473,7 @@ function renderAll() {
   renderLocationButtons();
   renderDialogue();
   renderPhaseLabel();
+  renderLocationActions();
   renderClues();
   renderCortexStatus();
 }
