@@ -307,6 +307,69 @@
      Event wiring
   ----------------------------------------------------------------------- */
 
+  /* -----------------------------------------------------------------------
+   Lab Action Handlers
+----------------------------------------------------------------------- */
+
+  function handleLabDeepScan() {
+    cortexLog(
+      "⚠️ Forbidden command acknowledged. Running encrypted deep scan… anomalies expected.",
+      "alert"
+    );
+
+    // Reveal the audit log redactions (if not already found)
+    const clue = STATE.discoverClue("audit_log_redactions");
+    if (clue) {
+      cortexLog(`Critical anomaly uncovered: "${clue.name}".`, "critical");
+      UI.renderClues();
+    }
+
+    // Advance dialogue to a special reaction line
+    STATE.setDialogueContext("location", "lab", 1);
+    UI.renderDialogue();
+  }
+
+  function handleLabIntegritySweep() {
+    cortexLog("Integrity sweep running… minimal exposure risk.", "normal");
+
+    // Optional small clue or “nothing found”
+    if (!STATE.hasClue("badge_log_anomaly")) {
+      const clue = STATE.discoverClue("badge_log_anomaly");
+      if (clue) {
+        cortexLog(`Integrity sweep logged anomaly: "${clue.name}".`, "normal");
+        UI.renderClues();
+      }
+    } else {
+      cortexLog("No new anomalies detected in available logs.", "normal");
+    }
+
+    STATE.setDialogueContext("location", "lab", 2);
+    UI.renderDialogue();
+  }
+
+  function handleLabCornerMilo() {
+    cortexLog(
+      "Initiating direct interrogation protocol with Milo Park… maintaining pressure.",
+      "alert"
+    );
+
+    // Unlock Milo’s secret topic
+    STATE.unlockSuspectTopic("milo", "panic_protocol");
+
+    // Reveal special clue if applicable
+    const clue = STATE.discoverClue("rooftop_argument");
+    if (clue) {
+      cortexLog(
+        `Milo admitted something unexpected: "${clue.name}".`,
+        "critical"
+      );
+      UI.renderClues();
+    }
+
+    STATE.setDialogueContext("location", "lab", 3);
+    UI.renderDialogue();
+  }
+
   // Intro → Investigation
   on(beginButton, "click", startInvestigation);
 
@@ -342,6 +405,32 @@
   // Help modal
   on(helpButton, "click", openHelp);
   on(closeHelpButton, "click", closeHelp);
+
+  // Lab action buttons (event delegation)
+  on(choicesPanelEl, "click", (event) => {
+    const btn = event.target;
+    if (!(btn instanceof HTMLElement)) return;
+
+    const actionId = btn.dataset.actionId;
+    if (!actionId) return;
+
+    switch (actionId) {
+      case "lab_deep_scan":
+        handleLabDeepScan();
+        break;
+
+      case "lab_quick_sweep": // or lab_integrity_sweep if that's what you named it in LOCATION_ACTIONS
+        handleLabIntegritySweep();
+        break;
+
+      case "lab_interview_milo": // match the id from LOCATION_ACTIONS
+        handleLabCornerMilo();
+        break;
+
+      default:
+        break;
+    }
+  });
 
   /* -----------------------------------------------------------------------
      Initial render

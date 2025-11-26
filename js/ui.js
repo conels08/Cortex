@@ -485,5 +485,7 @@ function renderAll() {
 window.CORTEX_UI = {
   renderAll,
   renderNotebook,
+  renderClues,
+  renderDialogue,
   addCortexMessage,
 };
