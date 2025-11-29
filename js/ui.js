@@ -141,28 +141,38 @@ function getCurrentDialogueLine() {
  * Renders the current dialogue line into the dialogue panel.
  */
 function renderDialogue() {
+  const state = STATE.getState();
   const line = getCurrentDialogueLine();
   if (!line) return;
 
+  // Speaker + text
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
-  // Phase label text
-  renderPhaseLabel();
+  // Clear choices by default
+  dialoguePanel.choicesContainer.innerHTML = "";
 
-  const state = STATE.getState();
-  const ctx = state.dialogueContext;
-
-  const isLabLocation =
+  // If we're in the Lab during Investigation phase, show Lab choices.
+  // This will rebuild them every time based on STATE.labActionsUsed.
+  if (
     state.phase === UI_GAME_PHASES.INVESTIGATION &&
-    ctx.kind === "location" &&
-    ctx.targetId === "lab";
-
-  // Only build the Lab choices the first time we hit the Lab intro line.
-  // After that, we leave them alone so they stay visible while the player
-  // clicks through dialogue.
-  if (isLabLocation && ctx.index === 0) {
+    state.currentLocationId === "lab"
+  ) {
     renderLabChoices();
+  }
+
+  // Keep the phase label accurate
+  if (typeof renderPhaseLabel === "function") {
+    renderPhaseLabel();
+  } else {
+    // Fallback: if you don't have renderPhaseLabel wired, keep your old mapping here
+    const phaseLabelMap = {
+      [UI_GAME_PHASES.INTRO]: "Introduction",
+      [UI_GAME_PHASES.INVESTIGATION]: "Investigation",
+      [UI_GAME_PHASES.DEDUCTION]: "Deduction",
+      [UI_GAME_PHASES.ENDING]: "Conclusion",
+    };
+    dialoguePanel.phaseLabel.textContent = phaseLabelMap[state.phase] || "";
   }
 }
 
@@ -170,7 +180,7 @@ function renderLabChoices() {
   const container = dialoguePanel.choicesContainer;
   if (!container) return;
 
-  // Rebuild the three decision buttons
+  // Always rebuild the three decision buttons from scratch
   container.innerHTML = "";
 
   const state = STATE.getState();
@@ -197,8 +207,8 @@ function renderLabChoices() {
     btn.dataset.actionId = action.id;
     btn.textContent = action.label;
 
-    // If this action was already used in this run, disable + style it
-    if (STATE.isLabActionUsed(action.id)) {
+    // Persist used state across Lab visits within a run
+    if (STATE.isLabActionUsed && STATE.isLabActionUsed(action.id)) {
       btn.disabled = true;
       btn.classList.add("dialogue-choice-button--used");
     }
