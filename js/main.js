@@ -51,6 +51,7 @@
   const helpButton = document.getElementById("help-button");
   const helpModal = document.getElementById("help-modal");
   const closeHelpButton = document.getElementById("close-help-button");
+  const playAgainButton = document.getElementById("play-again-button");
 
   /* -----------------------------------------------------------------------
      Small helpers
@@ -414,6 +415,9 @@
   // Help modal
   on(helpButton, "click", openHelp);
   on(closeHelpButton, "click", closeHelp);
+
+  // Ending screen "Play again" button
+  on(playAgainButton, "click", restartCase);
 
   // Lab action buttons (event delegation)
   on(choicesPanelEl, "click", (event) => {

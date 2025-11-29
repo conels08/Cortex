@@ -32,6 +32,13 @@ const screens = {
   game: document.getElementById("game-screen"),
 };
 
+const endingScreen = {
+  root: document.getElementById("ending-screen"),
+  title: document.getElementById("ending-title"),
+  tagline: document.getElementById("ending-tagline"),
+  details: document.getElementById("ending-details"),
+};
+
 const header = {
   aboutButton: document.getElementById("about-button"),
   helpButton: document.getElementById("help-button"),
@@ -79,18 +86,30 @@ const notebook = {
  */
 function renderScreens() {
   const { phase } = STATE.getState();
-  const introActive = phase === UI_GAME_PHASES.INTRO;
 
+  const isIntro = phase === UI_GAME_PHASES.INTRO;
+  const isEnding = phase === UI_GAME_PHASES.ENDING;
+  const isGame = !isIntro && !isEnding; // everything in-between
+
+  // Intro screen
   if (screens.intro) {
-    screens.intro.classList.toggle("screen--active", introActive);
-    screens.intro.classList.toggle("screen--hidden", !introActive);
-    screens.intro.hidden = !introActive;
+    screens.intro.classList.toggle("screen--active", isIntro);
+    screens.intro.classList.toggle("screen--hidden", !isIntro);
+    screens.intro.hidden = !isIntro;
   }
 
+  // Main game screen
   if (screens.game) {
-    screens.game.classList.toggle("screen--active", !introActive);
-    screens.game.classList.toggle("screen--hidden", introActive);
-    screens.game.hidden = introActive;
+    screens.game.classList.toggle("screen--active", isGame);
+    screens.game.classList.toggle("screen--hidden", !isGame);
+    screens.game.hidden = !isGame;
+  }
+
+  // Ending screen
+  if (endingScreen.root) {
+    endingScreen.root.classList.toggle("screen--active", isEnding);
+    endingScreen.root.classList.toggle("screen--hidden", !isEnding);
+    endingScreen.root.hidden = !isEnding;
   }
 }
 
@@ -333,6 +352,63 @@ function renderCortexStatus() {
   );
 }
 
+function renderEndingScreen() {
+  const state = STATE.getState();
+  if (!endingScreen.root) return;
+
+  // Only populate when we're actually in the ENDING phase
+  if (state.phase !== UI_GAME_PHASES.ENDING) {
+    return;
+  }
+
+  const { endingKey, score } = state;
+
+  let title = "Case Result";
+  let tagline = "";
+
+  switch (endingKey) {
+    case "perfect":
+      title = "Case Closed: Perfect Reconstruction";
+      tagline =
+        "Suspect, motive, and all critical clues aligned. CORTEX marks this run as a reference pattern.";
+      break;
+    case "close":
+      title = "Case Mostly Solved";
+      tagline =
+        "You caught the right shadow, but some variables stayed fuzzy. Another pass might lock it in.";
+      break;
+    default:
+      title = "Case Unresolved";
+      tagline =
+        "Your accusation conflicts with too much of the evidence. Officially closed, but the pattern persists.";
+      break;
+  }
+
+  endingScreen.title.textContent = title;
+  endingScreen.tagline.textContent = tagline;
+
+  // Build a simple score summary
+  let detailsHtml = "";
+
+  if (score) {
+    detailsHtml += `<p><strong>Culprit correct:</strong> ${
+      score.culpritCorrect ? "YES" : "NO"
+    }</p>`;
+    detailsHtml += `<p><strong>Motive correct:</strong> ${
+      score.motiveCorrect ? "YES" : "NO"
+    }</p>`;
+    detailsHtml += `<p><strong>Critical clues found:</strong> ${score.criticalCluesFound} / ${score.criticalCluesTotal}</p>`;
+  }
+
+  detailsHtml += `
+    <p class="ending-details__hint">
+      Try a different path through the Lab, Server Vault, and Rooftop to see how the pattern shifts.
+    </p>
+  `;
+
+  endingScreen.details.innerHTML = detailsHtml;
+}
+
 /* ==========================================================================
    Notebook Rendering
    ========================================================================== */
@@ -473,6 +549,7 @@ function renderAll() {
   renderPhaseLabel();
   renderClues();
   renderCortexStatus();
+  renderEndingScreen(); // <-- just add this line
 }
 
 /* ==========================================================================

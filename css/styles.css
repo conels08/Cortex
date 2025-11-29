@@ -953,6 +953,32 @@ body {
 }
 
 /* =========================
+   Ending Screen
+   ========================= */
+
+#ending-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.ending-screen__inner {
+  max-width: 600px;
+  text-align: center;
+}
+
+.ending-details {
+  margin: 1.5rem 0;
+}
+
+.ending-details__hint {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* =========================
    Responsive Adjustments
    ========================= */
 
