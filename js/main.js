@@ -416,7 +416,6 @@
   on(closeHelpButton, "click", closeHelp);
 
   // Lab action buttons (event delegation)
-  // Lab action buttons (event delegation)
   on(choicesPanelEl, "click", (event) => {
     const btn = event.target;
     if (!(btn instanceof HTMLButtonElement)) return;
@@ -424,7 +423,10 @@
     const actionId = btn.dataset.actionId;
     if (!actionId) return;
 
-    // Mark this specific choice as used
+    // Mark this choice as used in state (so it persists across Lab visits)
+    STATE.markLabActionUsed(actionId);
+
+    // Immediately reflect this in the UI for this run
     btn.disabled = true;
     btn.classList.add("dialogue-choice-button--used");
 

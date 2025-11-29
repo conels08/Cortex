@@ -173,6 +173,8 @@ function renderLabChoices() {
   // Rebuild the three decision buttons
   container.innerHTML = "";
 
+  const state = STATE.getState();
+
   const actions = [
     {
       id: "lab_deep_scan",
@@ -194,6 +196,13 @@ function renderLabChoices() {
     btn.className = "dialogue-choice-button";
     btn.dataset.actionId = action.id;
     btn.textContent = action.label;
+
+    // If this action was already used in this run, disable + style it
+    if (STATE.isLabActionUsed(action.id)) {
+      btn.disabled = true;
+      btn.classList.add("dialogue-choice-button--used");
+    }
+
     container.appendChild(btn);
   });
 }

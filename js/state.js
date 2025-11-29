@@ -104,6 +104,9 @@ function createInitialState() {
     // Clues / evidence
     discoveredClueIds: [],
 
+    // Lab-specific action tracking (per run)
+    labActionsUsed: {}, // e.g., {"lab_deep_scan": true, ... }
+
     // Dialogue context
     /**
      * The current "dialogue context" indicates what type of
@@ -388,6 +391,30 @@ function getUnlockedTopicsForSuspect(suspectId) {
 }
 
 /* ==========================================================================
+   Lab Action Tracking
+   ========================================================================== */
+
+/**
+ * Marks a lab action as used for the current run.
+ * actionId should match the data-action-id used in the UI.
+ */
+function markLabActionUsed(actionId) {
+  if (!currentState.labActionsUsed) {
+    currentState.labActionsUsed = {};
+  }
+  currentState.labActionsUsed[actionId] = true;
+}
+
+/**
+ * Returns true if the given lab action has been used in this run.
+ */
+function isLabActionUsed(actionId) {
+  return !!(
+    currentState.labActionsUsed && currentState.labActionsUsed[actionId]
+  );
+}
+
+/* ==========================================================================
    Dialogue Context Management
    ========================================================================== */
 
@@ -607,6 +634,10 @@ window.CORTEX_STATE = {
   isSuspectIntroSeen,
   unlockSuspectTopic,
   getUnlockedTopicsForSuspect,
+
+  // Lab actions
+  markLabActionUsed,
+  isLabActionUsed,
 
   // Dialogue context
   advanceDialogueIndex,
