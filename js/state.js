@@ -105,7 +105,7 @@ function createInitialState() {
     discoveredClueIds: [],
 
     // Lab-specific action tracking (per run)
-    labActionsUsed: {}, // e.g., {"lab_deep_scan": true, ... }
+    labActionsUsed: new Set(), // e.g., {"lab_deep_scan": true, ... }
 
     // Dialogue context
     /**
@@ -409,9 +409,8 @@ function markLabActionUsed(actionId) {
  * Returns true if the given lab action has been used in this run.
  */
 function isLabActionUsed(actionId) {
-  return !!(
-    currentState.labActionsUsed && currentState.labActionsUsed[actionId]
-  );
+  if (!currentState.labActionsUsed) return false;
+  return currentState.labActionsUsed.has(actionId);
 }
 
 /* ==========================================================================

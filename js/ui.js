@@ -141,39 +141,58 @@ function getCurrentDialogueLine() {
  * Renders the current dialogue line into the dialogue panel.
  */
 function renderDialogue() {
-  const state = STATE.getState();
   const line = getCurrentDialogueLine();
   if (!line) return;
 
-  // Speaker + text
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
-  // Clear choices by default
+  const phase = STATE.getState().phase;
+  dialoguePanel.phaseLabel.textContent = renderPhaseLabel(phase);
+
+  // Render any location-specific choices (Lab actions, etc.)
+  renderLocationChoices();
+}
+
+/**
+ * Renders any location-specific choice buttons (e.g. Lab actions)
+ * into the dialogue choices panel.
+ */
+function renderLocationChoices() {
+  const state = STATE.getState();
+  const ctx = state.dialogueContext;
+
+  // Clear any existing buttons by default.
   dialoguePanel.choicesContainer.innerHTML = "";
 
-  // If we're in the Lab during Investigation phase, show Lab choices.
-  // This will rebuild them every time based on STATE.labActionsUsed.
+  // We only show Lab actions while in the Lab during investigation.
   if (
-    state.phase === UI_GAME_PHASES.INVESTIGATION &&
-    state.currentLocationId === "lab"
+    state.phase !== UI_GAME_PHASES.INVESTIGATION ||
+    state.currentLocationId !== "lab" ||
+    ctx.kind !== "location"
   ) {
-    renderLabChoices();
+    return;
   }
 
-  // Keep the phase label accurate
-  if (typeof renderPhaseLabel === "function") {
-    renderPhaseLabel();
-  } else {
-    // Fallback: if you don't have renderPhaseLabel wired, keep your old mapping here
-    const phaseLabelMap = {
-      [UI_GAME_PHASES.INTRO]: "Introduction",
-      [UI_GAME_PHASES.INVESTIGATION]: "Investigation",
-      [UI_GAME_PHASES.DEDUCTION]: "Deduction",
-      [UI_GAME_PHASES.ENDING]: "Conclusion",
-    };
-    dialoguePanel.phaseLabel.textContent = phaseLabelMap[state.phase] || "";
-  }
+  const actions = DATA.LOCATION_ACTIONS.lab || [];
+  if (!actions.length) return;
+
+  actions.forEach((action) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dialogue-choice-button";
+    btn.dataset.actionId = action.id;
+
+    btn.textContent = action.label;
+
+    // If this action has already been used in this run, dim/disable it.
+    if (STATE.isLabActionUsed(action.id)) {
+      btn.disabled = true;
+      btn.classList.add("dialogue-choice-button--used");
+    }
+
+    dialoguePanel.choicesContainer.appendChild(btn);
+  });
 }
 
 function renderLabChoices() {
