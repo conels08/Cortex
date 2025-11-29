@@ -399,10 +399,15 @@ function getUnlockedTopicsForSuspect(suspectId) {
  * actionId should match the data-action-id used in the UI.
  */
 function markLabActionUsed(actionId) {
-  if (!currentState.labActionsUsed) {
-    currentState.labActionsUsed = {};
+  // Ensure we really have a Set on the current state
+  if (
+    !currentState.labActionsUsed ||
+    !(currentState.labActionsUsed instanceof Set)
+  ) {
+    currentState.labActionsUsed = new Set();
   }
-  currentState.labActionsUsed[actionId] = true;
+
+  currentState.labActionsUsed.add(actionId);
 }
 
 /**

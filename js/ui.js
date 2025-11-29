@@ -147,9 +147,7 @@ function renderDialogue() {
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
-  const phase = STATE.getState().phase;
-  dialoguePanel.phaseLabel.textContent = renderPhaseLabel(phase);
-
+  renderPhaseLabel();
   // Render any location-specific choices (Lab actions, etc.)
   renderLocationChoices();
 }
@@ -195,47 +193,6 @@ function renderLocationChoices() {
   });
 }
 
-function renderLabChoices() {
-  const container = dialoguePanel.choicesContainer;
-  if (!container) return;
-
-  // Always rebuild the three decision buttons from scratch
-  container.innerHTML = "";
-
-  const state = STATE.getState();
-
-  const actions = [
-    {
-      id: "lab_deep_scan",
-      label: "Run a forbidden deep scan and get out of here.",
-    },
-    {
-      id: "lab_quick_sweep",
-      label: "Do a quick integrity sweep and move on.",
-    },
-    {
-      id: "lab_interview_milo",
-      label: "Corner Milo for a late-night debrief.",
-    },
-  ];
-
-  actions.forEach((action) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "dialogue-choice-button";
-    btn.dataset.actionId = action.id;
-    btn.textContent = action.label;
-
-    // Persist used state across Lab visits within a run
-    if (STATE.isLabActionUsed && STATE.isLabActionUsed(action.id)) {
-      btn.disabled = true;
-      btn.classList.add("dialogue-choice-button--used");
-    }
-
-    container.appendChild(btn);
-  });
-}
-
 function renderPhaseLabel() {
   const state = STATE.getState();
   const phase = state.phase;
@@ -267,50 +224,6 @@ function renderPhaseLabel() {
     default:
       dialoguePanel.phaseLabel.textContent = "";
   }
-}
-
-/**
- * Renders location-specific investigation actions into the choices panel.
- * For now, this is driven by LOCATION_ACTIONS in data.js and only wired
- * for the investigation phase.
- */
-function renderLocationActions() {
-  const state = STATE.getState();
-  const phase = state.phase;
-  const locId = state.currentLocationId;
-
-  if (!dialoguePanel.choicesContainer) return;
-
-  // Always start with an empty choices panel. renderDialogue() already
-  // cleared it, but we guard against stale content here as well.
-  dialoguePanel.choicesContainer.innerHTML = "";
-
-  // Only show actions during the investigation phase and when a location
-  // is actually selected.
-  if (phase !== UI_GAME_PHASES.INVESTIGATION || !locId) {
-    return;
-  }
-
-  const actionsByLocation = DATA.LOCATION_ACTIONS || {};
-  const actions = actionsByLocation[locId];
-
-  if (!actions || !actions.length) {
-    return;
-  }
-
-  actions.forEach((action) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "choice-button";
-    btn.textContent = action.label;
-    btn.dataset.actionId = action.id;
-
-    if (action.description) {
-      btn.title = action.description;
-    }
-
-    dialoguePanel.choicesContainer.appendChild(btn);
-  });
 }
 
 /* ==========================================================================
@@ -558,7 +471,6 @@ function renderAll() {
   renderLocationButtons();
   renderDialogue();
   renderPhaseLabel();
-  renderLocationActions();
   renderClues();
   renderCortexStatus();
 }
