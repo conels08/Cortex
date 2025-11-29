@@ -178,7 +178,7 @@ function renderLocationChoices() {
   actions.forEach((action) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "dialogue-choice-button";
+    btn.className = "choice-button dialogue-choice-button";
     btn.dataset.actionId = action.id;
 
     btn.textContent = action.label;
