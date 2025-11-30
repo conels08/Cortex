@@ -77,6 +77,8 @@ const notebook = {
   accusedEvidenceSelect: document.getElementById("accused-evidence-select"),
 };
 
+const endingBreakdownEl = document.getElementById("ending-breakdown");
+
 /* ==========================================================================
    Screen Management
    ========================================================================== */
@@ -386,6 +388,21 @@ function renderEndingScreen() {
 
   endingScreen.title.textContent = title;
   endingScreen.tagline.textContent = tagline;
+
+  // --- Performance breakdown line ---
+  if (endingBreakdownEl && score) {
+    const {
+      culpritCorrect,
+      motiveCorrect,
+      criticalCluesFound,
+      criticalCluesTotal,
+    } = score;
+
+    endingBreakdownEl.textContent =
+      `Culprit correct: ${culpritCorrect ? "yes" : "no"} • ` +
+      `Motive correct: ${motiveCorrect ? "yes" : "no"} • ` +
+      `Critical clues: ${criticalCluesFound}/${criticalCluesTotal}`;
+  }
 
   // Build a simple score summary
   let detailsHtml = "";
