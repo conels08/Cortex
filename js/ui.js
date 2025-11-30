@@ -342,6 +342,16 @@ function addCortexMessage(text, variant = "normal") {
 }
 
 /**
+ * Clears all messages from the CORTEX feed panel.
+ */
+function clearCortexFeed() {
+  if (cortexPanel.feed) {
+    cortexPanel.feed.innerHTML = "";
+    cortexPanel.feed.scrollTop = 0;
+  }
+}
+
+/**
  * Renders the CORTEX status pill (Online / Muted).
  */
 function renderCortexStatus() {
@@ -592,4 +602,5 @@ window.CORTEX_UI = {
   renderClues,
   renderDialogue,
   addCortexMessage,
+  clearCortexFeed,
 };

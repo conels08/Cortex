@@ -219,9 +219,18 @@
   }
 
   function restartCase() {
+    // Fresh game state
     STATE.resetGameState();
     STATE.setPhase(PHASES.INTRO);
+
+    // Wipe the CORTEX feed so the new run feels clean
+    if (typeof UI.clearCortexFeed === "function") {
+      UI.clearCortexFeed();
+    }
+
+    // Optional: log a fresh restart line
     cortexLog("Case reset. Returning to briefing.", "alert");
+
     UI.renderAll();
   }
 
