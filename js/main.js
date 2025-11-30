@@ -42,6 +42,10 @@
 
   const notebookModal = document.getElementById("notebook-modal");
   const closeNotebookButton = document.getElementById("close-notebook-button");
+  const notebookSuspectsList = document.getElementById(
+    "notebook-suspects-list"
+  );
+
   const accusationForm = document.getElementById("accusation-form");
 
   const aboutButton = document.getElementById("about-button");
@@ -293,6 +297,38 @@
     closeNotebook();
   }
 
+  function startSuspectInterview(suspectId) {
+    if (!suspectId) return;
+
+    const suspect = STATE.findSuspectById(suspectId);
+    if (!suspect) {
+      console.warn(
+        `MAIN: Unknown suspectId "${suspectId}" in interview start.`
+      );
+      return;
+    }
+
+    // Interviews are part of the investigation flow
+    STATE.setPhase(PHASES.INVESTIGATION);
+
+    // Mark intro as seen the first time we open them
+    if (!STATE.isSuspectIntroSeen(suspectId)) {
+      STATE.markSuspectIntroSeen(suspectId);
+    }
+
+    // Switch dialogue to this suspect's intro sequence
+    STATE.setDialogueContext("suspect", suspectId, 0);
+
+    // Let CORTEX acknowledge the interview
+    cortexLog(`Opening interview channel with ${suspect.name}.`, "normal");
+
+    // Close the notebook if it's open
+    closeNotebook();
+
+    // Re-render the UI to show the suspect dialogue
+    UI.renderAll();
+  }
+
   /* -----------------------------------------------------------------------
      About / Help actions
   ----------------------------------------------------------------------- */
@@ -464,6 +500,17 @@
       default:
         break;
     }
+  });
+
+  // Notebook suspect cards → start interview
+  on(notebookSuspectsList, "click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const suspectId = target.dataset.suspectId;
+    if (!suspectId) return;
+
+    startSuspectInterview(suspectId);
   });
 
   /* -----------------------------------------------------------------------

@@ -491,6 +491,13 @@ function renderNotebook() {
       <p><strong>Role:</strong> ${sus.role}</p>
       <p><strong>Relation:</strong> ${sus.relationshipToVictim}</p>
       <p>${sus.initialImpression}</p>
+      <button
+        type="button"
+        class="notebook-suspect__interview-button"
+        data-suspect-id="${sus.id}"
+      >
+        Interview ${sus.name}
+      </button>
     `;
     notebook.suspectsList.appendChild(item);
   });
