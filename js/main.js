@@ -318,6 +318,11 @@
       "alert"
     );
 
+    // Record that the player pushed CORTEX beyond safe limits this run
+    if (STATE.setFlag) {
+      STATE.setFlag("lab_forbidden_scan_used", true);
+    }
+
     // Reveal the audit log redactions (if not already found)
     const clue = STATE.discoverClue("audit_log_redactions");
     if (clue) {

@@ -107,6 +107,9 @@ function createInitialState() {
     // Lab-specific action tracking (per run)
     labActionsUsed: new Set(), // e.g., {"lab_deep_scan": true, ... }
 
+    // Global branching flags (for narrative / scoring nuances)
+    flags: {},
+
     // Dialogue context
     /**
      * The current "dialogue context" indicates what type of
@@ -399,7 +402,7 @@ function getUnlockedTopicsForSuspect(suspectId) {
  * actionId should match the data-action-id used in the UI.
  */
 function markLabActionUsed(actionId) {
-  // Ensure we really have a Set on the current state
+  // Ensure we always work with a Set, even if something reset it.
   if (
     !currentState.labActionsUsed ||
     !(currentState.labActionsUsed instanceof Set)
@@ -414,8 +417,32 @@ function markLabActionUsed(actionId) {
  * Returns true if the given lab action has been used in this run.
  */
 function isLabActionUsed(actionId) {
-  if (!currentState.labActionsUsed) return false;
-  return currentState.labActionsUsed.has(actionId);
+  const used = currentState.labActionsUsed;
+  if (!used || !(used instanceof Set)) return false;
+  return used.has(actionId);
+}
+
+/* ==========================================================================
+   Branching Flag Management
+   ========================================================================== */
+
+function setFlag(flagName, value = true) {
+  if (!currentState.flags) {
+    currentState.flags = {};
+  }
+  currentState.flags[flagName] = value;
+}
+
+function getFlag(flagName) {
+  if (!currentState.flags) return false;
+  return !!currentState.flags[flagName];
+}
+
+function clearFlag(flagName) {
+  if (!currentState.flags) return;
+  if (flagName in currentState.flags) {
+    delete currentState.flags[flagName];
+  }
 }
 
 /* ==========================================================================
@@ -649,6 +676,11 @@ window.CORTEX_STATE = {
 
   // CORTEX behavior
   toggleCortexHints,
+
+  // Branching flags
+  setFlag,
+  getFlag,
+  clearFlag,
 
   // Accusation/evaluation
   setAccusation,

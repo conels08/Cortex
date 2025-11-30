@@ -368,17 +368,30 @@ function renderEndingScreen() {
   let title = "Case Result";
   let tagline = "";
 
+  // Did the player push CORTEX with the forbidden scan?
+  const usedForbiddenScan =
+    typeof STATE.getFlag === "function" &&
+    STATE.getFlag("lab_forbidden_scan_used");
+
   switch (endingKey) {
     case "perfect":
       title = "Case Closed: Perfect Reconstruction";
-      tagline =
-        "Suspect, motive, and all critical clues aligned. CORTEX marks this run as a reference pattern.";
+
+      if (usedForbiddenScan) {
+        tagline =
+          "Suspect, motive, and all critical clues aligned—but you pushed CORTEX past its safe limits. This run is logged as both a reference pattern and a cautionary tale.";
+      } else {
+        tagline =
+          "Suspect, motive, and all critical clues aligned. CORTEX marks this run as a clean reference pattern.";
+      }
       break;
+
     case "close":
       title = "Case Mostly Solved";
       tagline =
         "You caught the right shadow, but some variables stayed fuzzy. Another pass might lock it in.";
       break;
+
     default:
       title = "Case Unresolved";
       tagline =
