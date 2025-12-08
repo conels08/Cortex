@@ -353,6 +353,28 @@
      Event wiring
   ----------------------------------------------------------------------- */
 
+  function handleSuspectTopicClick(topicId) {
+    const state = STATE.getState();
+    const ctx = state.dialogueContext;
+
+    if (ctx.kind !== "suspect") {
+      return;
+    }
+
+    const suspectId = ctx.targetId;
+    if (!suspectId) return;
+
+    // Switch dialogue context to this topic, starting at the first line
+    STATE.setDialogueContext("suspect", suspectId, 0, topicId);
+
+    cortexLog(
+      `Interview topic selected: ${suspectId} → ${topicId.replace(/_/g, " ")}.`,
+      "normal"
+    );
+
+    UI.renderDialogue();
+  }
+
   /* -----------------------------------------------------------------------
    Lab Action Handlers
 ----------------------------------------------------------------------- */
@@ -469,36 +491,46 @@
   // Ending screen "Play again" button
   on(playAgainButton, "click", restartCase);
 
-  // Lab action buttons (event delegation)
+  // Lab actions + suspect topic buttons (event delegation)
   on(choicesPanelEl, "click", (event) => {
     const btn = event.target;
     if (!(btn instanceof HTMLButtonElement)) return;
 
     const actionId = btn.dataset.actionId;
-    if (!actionId) return;
+    const topicId = btn.dataset.topicId;
 
-    // Mark this choice as used in state (so it persists across Lab visits)
-    STATE.markLabActionUsed(actionId);
+    // --- Lab actions (location-based) ---
+    if (actionId) {
+      // Mark this choice as used in state (so it persists across Lab visits)
+      STATE.markLabActionUsed(actionId);
 
-    // Immediately reflect this in the UI for this run
-    btn.disabled = true;
-    btn.classList.add("dialogue-choice-button--used");
+      // Immediately reflect this in the UI for this run
+      btn.disabled = true;
+      btn.classList.add("dialogue-choice-button--used");
 
-    switch (actionId) {
-      case "lab_deep_scan":
-        handleLabDeepScan();
-        break;
+      switch (actionId) {
+        case "lab_deep_scan":
+          handleLabDeepScan();
+          break;
 
-      case "lab_quick_sweep":
-        handleLabIntegritySweep();
-        break;
+        case "lab_quick_sweep":
+          handleLabIntegritySweep();
+          break;
 
-      case "lab_interview_milo":
-        handleLabCornerMilo();
-        break;
+        case "lab_interview_milo":
+          handleLabCornerMilo();
+          break;
 
-      default:
-        break;
+        default:
+          break;
+      }
+
+      return;
+    }
+
+    // --- Suspect topics (interview-based) ---
+    if (topicId) {
+      handleSuspectTopicClick(topicId);
     }
   });
 

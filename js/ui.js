@@ -144,6 +144,12 @@ function getCurrentDialogueLine() {
     case "suspect": {
       const script = DATA.SUSPECT_DIALOGUE[ctx.targetId];
       if (!script) return null;
+
+      // If a topic is active, use that topic's script; otherwise use the intro.
+      if (ctx.topicId && script.topics && script.topics[ctx.topicId]) {
+        return script.topics[ctx.topicId][ctx.index] || null;
+      }
+
       return script.intro[ctx.index] || null;
     }
 
@@ -168,9 +174,29 @@ function renderDialogue() {
   dialoguePanel.speakerName.textContent = line.speaker;
   dialoguePanel.text.textContent = line.text;
 
+  // Update phase label
   renderPhaseLabel();
-  // Render any location-specific choices (Lab actions, etc.)
-  renderLocationChoices();
+
+  // Clear existing choices every time we re-render dialogue
+  if (dialoguePanel.choicesContainer) {
+    dialoguePanel.choicesContainer.innerHTML = "";
+  }
+
+  const state = STATE.getState();
+  const ctx = state.dialogueContext;
+
+  // Only show choices during the Investigation phase
+  if (state.phase !== UI_GAME_PHASES.INVESTIGATION) {
+    return;
+  }
+
+  if (ctx.kind === "location") {
+    // Lab/other location-specific decision buttons
+    renderLocationChoices();
+  } else if (ctx.kind === "suspect") {
+    // Topic buttons for the active suspect
+    renderSuspectTopics();
+  }
 }
 
 /**
@@ -180,9 +206,6 @@ function renderDialogue() {
 function renderLocationChoices() {
   const state = STATE.getState();
   const ctx = state.dialogueContext;
-
-  // Clear any existing buttons by default.
-  dialoguePanel.choicesContainer.innerHTML = "";
 
   // We only show Lab actions while in the Lab during investigation.
   if (
@@ -201,7 +224,6 @@ function renderLocationChoices() {
     btn.type = "button";
     btn.className = "choice-button dialogue-choice-button";
     btn.dataset.actionId = action.id;
-
     btn.textContent = action.label;
 
     // If this action has already been used in this run, dim/disable it.
@@ -211,6 +233,43 @@ function renderLocationChoices() {
     }
 
     dialoguePanel.choicesContainer.appendChild(btn);
+  });
+}
+
+function renderSuspectTopics() {
+  const state = STATE.getState();
+  const ctx = state.dialogueContext;
+
+  if (ctx.kind !== "suspect") return;
+
+  const suspectId = ctx.targetId;
+  if (!suspectId) return;
+
+  const script = DATA.SUSPECT_DIALOGUE[suspectId];
+  if (!script || !script.topics) return;
+
+  const container = dialoguePanel.choicesContainer;
+  if (!container) return;
+
+  // Friendly labels for topic IDs
+  const topicLabelMap = {
+    alibi: "Alibi / Timeline",
+    ghost_algorithm: "The Ghost Algorithm",
+    pressure: "Investor Pressure",
+    casino_sims: "Casino Simulations",
+    victim_relation: "Relationship with the Victim",
+    audit_logs: "Audit Logs & Redactions",
+    rooftop_argument: "The Rooftop Argument",
+  };
+
+  Object.keys(script.topics).forEach((topicId) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dialogue-choice-button";
+    btn.dataset.topicId = topicId;
+    btn.textContent = topicLabelMap[topicId] || topicId.replace(/_/g, " ");
+
+    container.appendChild(btn);
   });
 }
 
@@ -224,24 +283,19 @@ function renderPhaseLabel() {
     case UI_GAME_PHASES.INTRO:
       dialoguePanel.phaseLabel.textContent = "Briefing";
       break;
-
     case UI_GAME_PHASES.INVESTIGATION:
       dialoguePanel.phaseLabel.textContent = "Investigation";
       break;
-
     case UI_GAME_PHASES.DEDUCTION:
       dialoguePanel.phaseLabel.textContent = "Deduction";
       break;
-
     case UI_GAME_PHASES.ACCUSATION:
       dialoguePanel.phaseLabel.textContent = "Accusation Submitted";
       break;
-
     case UI_GAME_PHASES.ENDING:
       dialoguePanel.phaseLabel.textContent =
         "Outcome: " + (state.endingKey || "unknown").toUpperCase();
       break;
-
     default:
       dialoguePanel.phaseLabel.textContent = "";
   }
@@ -592,11 +646,10 @@ function renderAll() {
   renderScreens();
   renderScenePanel();
   renderLocationButtons();
-  renderDialogue();
-  renderPhaseLabel();
+  renderDialogue(); // <- handles phase label + choices
   renderClues();
   renderCortexStatus();
-  renderEndingScreen(); // <-- just add this line
+  renderEndingScreen();
 }
 
 /* ==========================================================================

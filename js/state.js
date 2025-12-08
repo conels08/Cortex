@@ -125,6 +125,7 @@ function createInitialState() {
       kind: "intro",
       targetId: null, // locationId, suspectId, or endingKey depending on kind
       index: 0, // index within the relevant dialogue array
+      topicId: null, // for suspect-topic conversations
     },
 
     // Suspect-related flags
@@ -481,8 +482,6 @@ function advanceDialogueIndex() {
       break;
     }
     case "suspect": {
-      // For suspects, the UI will likely handle topic-level sequencing,
-      // so this context may just be used for intro lines.
       const suspectScript = SUSPECT_DIALOGUE[ctx.targetId];
       if (!suspectScript) {
         console.warn(
@@ -490,9 +489,20 @@ function advanceDialogueIndex() {
         );
         return "end";
       }
-      dialogueArray = suspectScript.intro;
+
+      // If a topic is active, use that topic's lines; otherwise use the intro.
+      if (
+        ctx.topicId &&
+        suspectScript.topics &&
+        suspectScript.topics[ctx.topicId]
+      ) {
+        dialogueArray = suspectScript.topics[ctx.topicId];
+      } else {
+        dialogueArray = suspectScript.intro;
+      }
       break;
     }
+
     case "ending": {
       const endingScript = ENDINGS[ctx.targetId];
       if (!endingScript) {
@@ -527,8 +537,8 @@ function advanceDialogueIndex() {
  * Sets the dialogue context explicitly.
  * Useful when switching between intro, location, suspect, and ending sequences.
  */
-function setDialogueContext(kind, targetId, index = 0) {
-  currentState.dialogueContext = { kind, targetId, index };
+function setDialogueContext(kind, targetId, index = 0, topicId = null) {
+  currentState.dialogueContext = { kind, targetId, index, topicId };
 }
 
 /* ==========================================================================
