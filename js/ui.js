@@ -265,7 +265,7 @@ function renderSuspectTopics() {
   Object.keys(script.topics).forEach((topicId) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "dialogue-choice-button";
+    btn.className = "choice-button dialogue-choice-button";
     btn.dataset.topicId = topicId;
     btn.textContent = topicLabelMap[topicId] || topicId.replace(/_/g, " ");
 
